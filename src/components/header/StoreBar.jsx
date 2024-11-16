@@ -1,31 +1,64 @@
+import { useRef, useEffect, useState } from 'react';
 import Acaccess from "./Acaccess"
 import Navbar from "./Navbar"
 import Venderlogo from "./Venderlogo"
+import PropTypes from 'prop-types';
 
 function StoreBar({ scrollProgress }) {
-  const barHeight = 70; // Height of the StoreBar in pixels
+  const [barHeight, setBarHeight] = useState(70);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const stickyThreshold = 0.1;
+  const barRef = useRef(null);
+
+  useEffect(() => {
+    if (barRef.current) {
+      setBarHeight(barRef.current.offsetHeight);
+    }
+  }, []);
+
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+  };
 
   return (
     <>
-      <div style={{ height: `${barHeight}px` }}></div> {/* Placeholder to prevent content jump */}
+      {/* This div acts as a spacer when the StoreBar becomes fixed */}
+      <div style={{ height: scrollProgress >= stickyThreshold ? `${barHeight}px` : '0', transition: 'height 0.3s ease-in-out' }}></div>
+
       <div 
-        className={`h-[70px] w-full flex justify-between items-center px-4 py-4 lg:px-20 md:px-8 bg-gradient-to-tl from-fuchsia-400 to-white border-b border-fuchsia-500 backdrop-blur-sm transition-all duration-300`}
+        ref={barRef}
+        className={`h-[70px] w-full flex justify-between items-center px-4 py-4 lg:px-20 md:px-8 bg-gradient-to-tl from-fuchsia-400 to-white border-b border-fuchsia-500 backdrop-blur-sm`}
         style={{
-          position: 'fixed',
-          top: `${(1 - scrollProgress) * -barHeight}px`, // Gradually move up
+          position: scrollProgress >= stickyThreshold ? 'fixed' : 'relative',
+          top: 0,
           left: 0,
           right: 0,
           zIndex: 1000,
-          boxShadow: `0 4px 6px -1px rgba(0, 0, 0, ${0.1 * scrollProgress}), 0 2px 4px -1px rgba(0, 0, 0, ${0.06 * scrollProgress})`,
-          opacity: 0.5 + 0.5 * scrollProgress, // Gradually increase opacity
+          boxShadow: scrollProgress >= stickyThreshold 
+            ? `0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)`
+            : 'none',
+          transition: 'all 0.3s ease-in-out',
         }}
       >
         <Venderlogo/>
-        <Navbar scrollProgress={scrollProgress} />
+        <Navbar barHeight={barHeight} isDrawerOpen={isDrawerOpen} toggleDrawer={toggleDrawer} />
         <Acaccess />
       </div>
+
+      {/* Overlay */}
+      {isDrawerOpen && (
+        <div
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 md:hidden"
+          style={{ top: `${barHeight}px` }}
+          onClick={toggleDrawer}
+        ></div>
+      )}
     </>
   )
 }
+
+StoreBar.propTypes = {
+  scrollProgress: PropTypes.number.isRequired,
+};
 
 export default StoreBar

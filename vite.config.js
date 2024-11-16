@@ -4,6 +4,7 @@ import path from 'path';
 import viteCompression from 'vite-plugin-compression';
 import { visualizer } from 'rollup-plugin-visualizer';
 import autoprefixer from 'autoprefixer';
+import process from 'process';
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -26,7 +27,7 @@ export default defineConfig(({ command, mode }) => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, 'src'),
+        '@': path.resolve(process.cwd(), 'src'),
       },
     },
     assetsInclude: [
@@ -36,14 +37,14 @@ export default defineConfig(({ command, mode }) => {
       'src/assets/styles',
       'src/assets/js',
     ],    
-    root: path.resolve(__dirname, '.'),
-    publicDir: path.resolve(__dirname, 'public'),
+    root: path.resolve(process.cwd(), '.'),
+    publicDir: path.resolve(process.cwd(), 'public'),
     base: env.VITE_BASE_URL || '/',
     build: {
-      outDir: path.resolve(__dirname, 'dist'),
+      outDir: path.resolve(process.cwd(), 'dist'),
       emptyOutDir: true,
       rollupOptions: {
-        input: path.resolve(__dirname, 'index.html'),
+        input: path.resolve(process.cwd(), 'index.html'),
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom'],
@@ -97,7 +98,7 @@ export default defineConfig(({ command, mode }) => {
 
   if (command === 'serve') {
     config.build.rollupOptions = {
-      input: path.resolve(__dirname, 'index.html'),
+      input: path.resolve(process.cwd(), 'index.html'),
       preserveEntrySignatures: 'strict',
     };
   } else {

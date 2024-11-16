@@ -1,0 +1,129 @@
+[
+    {
+      "name": "Idli",
+      "description": "Steamed rice cakes served with sambar and chutney.",
+      "ingredients": ["Rice", "Urad dal", "Salt"],
+      "price": 40,
+      "serving_size": "2 pieces"
+    },
+    {
+      "name": "Dosa",
+      "description": "Crispy, thin crepe made from rice and lentil batter, usually served with sambar and chutney.",
+      "ingredients": ["Rice", "Urad dal", "Salt", "Ghee or oil"],
+      "price": 50,
+      "serving_size": "1 piece"
+    },
+    {
+      "name": "Masala Dosa",
+      "description": "Crispy dosa filled with spiced mashed potatoes, served with sambar and chutney.",
+      "ingredients": ["Rice", "Urad dal", "Potatoes", "Onions", "Spices"],
+      "price": 70,
+      "serving_size": "1 piece"
+    },
+    {
+      "name": "Vada",
+      "description": "Deep-fried savory donut made from lentil batter, served with sambar and chutney.",
+      "ingredients": ["Urad dal", "Black pepper", "Ginger", "Curry leaves"],
+      "price": 30,
+      "serving_size": "2 pieces"
+    },
+    {
+      "name": "Uttapam",
+      "description": "Thick pancake topped with vegetables like tomatoes, onions, and chilies.",
+      "ingredients": ["Rice", "Urad dal", "Vegetables", "Salt"],
+      "price": 60,
+      "serving_size": "1 piece"
+    },
+    {
+      "name": "Pongal",
+      "description": "Savory rice and lentil dish, flavored with black pepper, cumin, and ghee.",
+      "ingredients": ["Rice", "Moong dal", "Black pepper", "Cumin seeds", "Ghee"],
+      "price": 50,
+      "serving_size": "1 bowl"
+    },
+    {
+      "name": "Upma",
+      "description": "Savory porridge made from semolina, with vegetables and spices.",
+      "ingredients": ["Semolina", "Onions", "Mustard seeds", "Curry leaves"],
+      "price": 40,
+      "serving_size": "1 bowl"
+    },
+    {
+      "name": "Pesarattu",
+      "description": "Green gram dosa, a protein-rich crepe served with ginger chutney.",
+      "ingredients": ["Green gram", "Ginger", "Green chilies", "Salt"],
+      "price": 60,
+      "serving_size": "1 piece"
+    },
+    {
+      "name": "Rava Dosa",
+      "description": "Crispy dosa made from semolina and rice flour, with spices and onions.",
+      "ingredients": ["Semolina", "Rice flour", "Onions", "Cumin seeds"],
+      "price": 55,
+      "serving_size": "1 piece"
+    },
+    {
+      "name": "Bonda",
+      "description": "Deep-fried snack with a potato filling, served with coconut chutney.",
+      "ingredients": ["Potatoes", "Chickpea flour", "Spices"],
+      "price": 30,
+      "serving_size": "2 pieces"
+    },
+    {
+      "name": "Appam",
+      "description": "Soft, bowl-shaped pancakes made from fermented rice batter, served with coconut stew.",
+      "ingredients": ["Rice", "Coconut milk", "Yeast"],
+      "price": 50,
+      "serving_size": "2 pieces"
+    },
+    {
+      "name": "Neer Dosa",
+      "description": "Thin, soft rice crepes served with coconut chutney or chicken curry.",
+      "ingredients": ["Rice", "Salt"],
+      "price": 40,
+      "serving_size": "2 pieces"
+    },
+    {
+      "name": "Medu Vada",
+      "description": "Crispy on the outside, fluffy on the inside, lentil-based donuts.",
+      "ingredients": ["Urad dal", "Ginger", "Green chilies", "Curry leaves"],
+      "price": 30,
+      "serving_size": "2 pieces"
+    },
+    {
+      "name": "Kara Paniyaram",
+      "description": "Savory dumplings made from a spiced batter of rice and lentils.",
+      "ingredients": ["Rice", "Urad dal", "Onions", "Chilies"],
+      "price": 50,
+      "serving_size": "1 plate"
+    },
+    {
+      "name": "Idiappam",
+      "description": "String hoppers made from rice flour, served with coconut milk or curry.",
+      "ingredients": ["Rice flour", "Salt"],
+      "price": 45,
+      "serving_size": "1 plate"
+    },
+    {
+      "name": "Poori with Masala",
+      "description": "Deep-fried bread served with spiced potato masala.",
+      "ingredients": ["Wheat flour", "Potatoes", "Spices"],
+      "price": 60,
+      "serving_size": "1 plate"
+    },
+    {
+      "name": "Vegetable Semiya Upma",
+      "description": "Upma made with vermicelli and mixed vegetables.",
+      "ingredients": ["Vermicelli", "Vegetables", "Mustard seeds", "Curry leaves"],
+      "price": 45,
+      "serving_size": "1 bowl"
+    },
+    {
+      "name": "Rava Kesari",
+      "description": "A sweet dish made from semolina, sugar, and ghee, often flavored with cardamom.",
+      "ingredients": ["Semolina", "Sugar", "Ghee", "Cardamom"],
+      "price": 35,
+      "serving_size": "1 bowl"
+    }
+  ]
+  

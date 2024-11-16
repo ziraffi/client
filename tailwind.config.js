@@ -15,6 +15,9 @@ export default {
         '6':'6',
         '7':'7',
     },
+    boxShadow: {
+      '3xl': '0px 2px 3px 2px rgba(0, 0, 0, 0.3);',
+    },
     },
   },
   plugins: [],

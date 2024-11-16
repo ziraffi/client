@@ -8,12 +8,12 @@ function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      if (scrollPosition <= 45) {
+      if (scrollPosition <= 48) {
         setScrollProgress(0);
       } else if (scrollPosition >= 50) {
         setScrollProgress(1);
       } else {
-        setScrollProgress((scrollPosition - 45) / 5); // Normalize between 0 and 1
+        setScrollProgress((scrollPosition - 48) / 5); // Normalize between 0 and 1
       }
     };
 
