@@ -1,18 +1,41 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  Suspense,
+  useRef,
+} from "react";
+import DOMPurify from "dompurify";
 
 function IndianPincodesAdv() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedState, setSelectedState] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedTaluk, setSelectedTaluk] = useState(null);
+  const [selectedBranchOffice, setSelectedBranchOffice] = useState(null);
+  const [selectedPincode, setSelectedPincode] = useState(null);
+
   const [countrySearch, setCountrySearch] = useState("");
   const [stateSearch, setStateSearch] = useState("");
   const [districtSearch, setDistrictSearch] = useState("");
   const [talukSearch, setTalukSearch] = useState("");
   const [branchOfficeSearch, setBranchOfficeSearch] = useState("");
   const [pincodeSearch, setPincodeSearch] = useState("");
+
   const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState(null);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [indianData, setIndianData] = useState([]);
-  const [selectedState, setSelectedState] = useState(null);
   const [citySearch, setCitySearch] = useState("");
   const [allStates, setAllStates] = useState([]);
   const [allCities, setAllCities] = useState([]);
@@ -27,10 +50,57 @@ function IndianPincodesAdv() {
   const [isIndianPlaces, setIsIndianPlaces] = useState(false);
   const [optimizedIndianData, setOptimizedIndianData] = useState({});
 
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
+
+  const countryDropdownRef = useRef(null);
+  const stateDropdownRef = useRef(null);
+  const cityDropdownRef = useRef(null);
+  const districtDropdownRef = useRef(null);
+  const talukDropdownRef = useRef(null);
+  const branchOfficeDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      switch (true) {
+        case countryDropdownRef.current &&
+          !countryDropdownRef.current.contains(event.target):
+          setIsSearchingCountry(false);
+          break;
+        case stateDropdownRef.current &&
+          !stateDropdownRef.current.contains(event.target):
+          setIsSearchingState(false);
+          break;
+        case districtDropdownRef.current &&
+          !districtDropdownRef.current.contains(event.target):
+          setIsSearchingDistrict(false);
+          break;
+        case talukDropdownRef.current &&
+          !talukDropdownRef.current.contains(event.target):
+          setIsSearchingTaluk(false);
+          break;
+        case branchOfficeDropdownRef.current &&
+          !branchOfficeDropdownRef.current.contains(event.target):
+          setIsSearchingOffice(false);
+          break;
+        case cityDropdownRef.current &&
+          !cityDropdownRef.current.contains(event.target):
+          setIsSearchingCity(false);
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoadingCountries(true);
       try {
         const [
           countriesResponse,
@@ -113,29 +183,28 @@ function IndianPincodesAdv() {
 
         setIndianData(indianData);
         setOptimizedIndianData(optimizedData);
-        console.log(
-          "Data loaded - Countries:",
-          countriesData.length,
-          "No.States:",
-          statesData.length,
-          "No.Cities:",
-          citiesData.length,
-          "No.Indian Data:",
-          indianData.length,
-          "No.Optimized data:",
-          optimizedData.length,
-          "States:",
-          statesData,
-          "Cities loaded:",
-          citiesData,
-
-        );
+        // console.log(
+        //   "Data loaded - Countries:",
+        //   countriesData.length,
+        //   "No.States:",
+        //   statesData.length,
+        //   "No.Cities:",
+        //   citiesData.length,
+        //   "No.Indian Data:",
+        //   indianData.length,
+        //   "No.Optimized data:",
+        //   optimizedData.length,
+        //   "States:",
+        //   statesData,
+        //   "Cities loaded:",
+        //   citiesData
+        // );
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
-    fetchData();
+    fetchData().finally(() => setIsLoadingCountries(false));
   }, []);
 
   // In the useEffect for States
@@ -314,13 +383,14 @@ function IndianPincodesAdv() {
   );
 
   const handleCitySelect = useCallback((city) => {
+    setSelectedCity(city.city_name);
     setCitySearch(city.city_name);
     setIsSearchingCity(false);
   }, []);
 
   const handleDistrictSelect = useCallback((district) => {
     setDistrictSearch(district);
-    // setSelectedDistrict(district);
+    setSelectedDistrict(district);
     setIsSearchingDistrict(false);
     setTalukSearch("");
     setBranchOfficeSearch("");
@@ -328,6 +398,7 @@ function IndianPincodesAdv() {
   }, []);
 
   const handleTalukSelect = useCallback((taluk) => {
+    setSelectedTaluk(taluk);
     setIsSearchingTaluk(false);
     setTalukSearch(taluk);
     setBranchOfficeSearch("");
@@ -335,51 +406,342 @@ function IndianPincodesAdv() {
   }, []);
 
   const handleBranchOfficeSelect = useCallback((office) => {
+    setSelectedBranchOffice(office.officeName);
     setBranchOfficeSearch(office.officeName);
     setPincodeSearch(office.pincode.toString());
+    setSelectedPincode(office.pincode.toString());
     setIsSearchingOffice(false);
   }, []);
 
-  const handleSubmit = useCallback(() => {
-    // Implement form submission logic here
-    const formData = {
-      country: selectedCountry?.name,
-      state: selectedState?.state_name,
-      ...(isIndianPlaces
-        ? {
-            district: districtSearch,
-            taluk: talukSearch,
-            branchOffice: branchOfficeSearch,
-            pincode: pincodeSearch,
-          }
-        : {
-            city: citySearch,
-          }),
-    };
-    console.log("Form data:", formData);
-    return formData;
+  const validateForm = useCallback(() => {
+    const newErrors = {};
+    const firstNameErrors = [];
+    const lastNameErrors = [];
+
+    // Validate firstName
+    if (!firstName || !firstName.trim()) {
+      firstNameErrors.push("First name is required");
+    } else {
+      if (firstName.trim().length < 3) {
+        firstNameErrors.push("First Name should be at least 3 characters long");
+      }
+      if (!/^[A-Za-z]+$/.test(firstName.trim())) {
+        firstNameErrors.push("First name should contain only alphabets");
+      }
+      if (firstName.trim().length > 10) {
+        firstNameErrors.push("First name should not exceed 10 characters");
+      }
+      const sanitizedFName = DOMPurify.sanitize(firstName.trim());
+      if (sanitizedFName !== firstName.trim()) {
+        firstNameErrors.push("First Name contains invalid characters");
+      }
+    }
+
+    if (firstNameErrors.length > 0) {
+      newErrors.firstName = firstNameErrors;
+    }
+
+    // Validate lastName
+    if (!lastName || !lastName.trim()) {
+      lastNameErrors.push("Last name is required");
+    } else {
+      if (lastName.trim().length < 2) {
+        lastNameErrors.push("Last name should be at least 2 characters long");
+      }
+      if (!/^[A-Za-z]+$/.test(lastName.trim())) {
+        lastNameErrors.push("Last name should contain only alphabets");
+      }
+      if (lastName.trim().length > 10) {
+        lastNameErrors.push("Last name should not exceed 10 characters");
+      }
+      const sanitizedLName = DOMPurify.sanitize(lastName.trim());
+      if (sanitizedLName !== lastName.trim()) {
+        lastNameErrors.push("Last name contains invalid characters");
+      }
+    }
+  
+    if (lastNameErrors.length > 0) {
+      newErrors.lastName = lastNameErrors;
+    }
+
+    // Validate email
+    if (!email || !email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email is invalid";
+    }
+
+    // Validate phoneNumber
+    if (!phoneNumber || !phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!/^\d{10}$/.test(phoneNumber.replace(/\D/g, ""))) {
+      newErrors.phoneNumber = "Phone number must be 10 digits";
+    }
+
+    // Validate country
+    if (!selectedCountry) {
+      newErrors.country = "Country is required";
+    }
+
+    // Validate state
+    if (!selectedState) {
+      newErrors.state = "State is required";
+    }
+
+    // Validate Indian-specific fields
+    if (isIndianPlaces) {
+      if (!selectedDistrict || !selectedDistrict.trim()) {
+        newErrors.district = "District is required";
+      }
+      if (!selectedTaluk || !selectedTaluk.trim()) {
+        newErrors.taluk = "Taluk is required";
+      }
+      if (!selectedBranchOffice || !selectedBranchOffice.trim()) {
+        newErrors.branchOffice = "Branch office is required";
+      }
+      if (!selectedPincode || !selectedPincode.trim()) {
+        newErrors.pincode = "Pincode is required";
+      }
+    } else {
+      // Validate city for non-Indian places
+      if (!selectedCity || !selectedCity.trim()) {
+        newErrors.city = "City is required";
+      }
+    }
+
+    // Validate addressLine
+    if (!addressLine || !addressLine.trim()) {
+      newErrors.addressLine = "Address is required";
+    } else {
+      const sanitizedAddress = DOMPurify.sanitize(addressLine.trim());
+      if (sanitizedAddress !== addressLine.trim()) {
+        newErrors.addressLine = "Address contains invalid characters";
+      }
+    }
+
+    // Validate landmark
+    if (!landmark || !landmark.trim()) {
+      newErrors.landmark = "Landmark is required";
+    } else {
+      const sanitizedLandmark = DOMPurify.sanitize(landmark.trim());
+      if (sanitizedLandmark !== landmark.trim()) {
+        newErrors.landmark = "Landmark contains invalid characters";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }, [
-    selectedCountry?.name,
-    selectedState?.state_name,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    selectedCountry,
+    selectedState,
+    selectedCity,
+    selectedDistrict,
+    selectedTaluk,
+    selectedBranchOffice,
+    selectedPincode,
+    addressLine,
+    landmark,
     isIndianPlaces,
-    districtSearch,
-    talukSearch,
-    branchOfficeSearch,
-    pincodeSearch,
-    citySearch,
   ]);
 
+  const handleSubmit = useCallback(
+    (e) => {
+      if (e) {
+        e.preventDefault();
+      }
+      if (validateForm()) {
+        const formData = {
+          personalInfo: {
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+          },
+          address: {
+            addressLine,
+            landmark,
+            country: selectedCountry?.name,
+            state: selectedState?.state_name,
+            ...(isIndianPlaces
+              ? {
+                  district: selectedDistrict,
+                  taluk: selectedTaluk,
+                  branchOffice: selectedBranchOffice,
+                  pincode: selectedPincode,
+                }
+              : {
+                  city: citySearch,
+                }),
+          },
+        };
+
+        console.log("Form data:", formData);
+        // Here you would typically send the data to your backend or perform further actions
+        return formData;
+      } else {
+        console.log("Form has errors. Please correct them.");
+      }
+    },
+    [
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      addressLine,
+      landmark,
+      selectedCountry,
+      selectedState,
+      selectedDistrict,
+      selectedTaluk,
+      selectedBranchOffice,
+      selectedPincode,
+      isIndianPlaces,
+      citySearch,
+      validateForm,
+    ]
+  );
+  function Loading() {
+    return <h2>🌀 Loading...</h2>;
+  }
   return (
     <div className="flex pt-20 pb-20 w-full justify-center">
       <div className="flex h-auto w-[400px] bg-white shadow-3xl rounded-[25px] p-8">
         <form action="/" className="flex flex-col w-full">
           <div className="flex flex-col gap-y-6">
-            <div className="inline-flex gap-5">
+            <div className="flex gap-5">
+              {/* First Name */}
+              <div className="flex-1 flex flex-col relative">
+                <label
+                  htmlFor="first-name"
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                >
+                  First Name
+                </label>
+                <input
+                  id="first-name"
+                  name="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  type="text"
+                  placeholder="Rajkiran"
+                  className={`w-full px-3 py-2 border ${
+                    errors.firstName ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.firstName
+                      ? "focus:ring-red-500"
+                      : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                />
+                {errors.firstName && Array.isArray(errors.firstName) && (
+                  <div className="text-red-500 flex flex-col text-xs mt-1 gap-1">
+                    {errors.firstName.map((error, index) => (
+                      <p key={index}>{error}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* Last Name */}
+              <div className="flex-1 flex flex-col relative">
+                <label
+                  htmlFor="last-name"
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                >
+                  Last Name
+                </label>
+                <input
+                  id="last-name"
+                  name="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  type="text"
+                  placeholder="Dev"
+                  className={`w-full px-3 py-2 border ${
+                    errors.lastName ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.lastName
+                      ? "focus:ring-red-500"
+                      : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                />
+                {errors.lastName && Array.isArray( errors.lastName ) && (
+                  <div className="text-red-500 flex flex-col text-xs mt-1 gap-1">
+                    {errors.lastName.map((error, index) => (
+                      <p key={index}>{error}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-5">
+              {/* Email */}
+              <div className="flex-1 flex flex-col relative">
+                <label
+                  htmlFor="email"
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="rajkiran.dev@example.com"
+                  className={`w-full px-3 py-2 border ${
+                    errors.email ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.email ? "focus:ring-red-500" : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
+              </div>
+              {/* Phone Number */}
+              <div className="flex-1 flex flex-col relative">
+                <label
+                  htmlFor="phone-number"
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                >
+                  Phone Number
+                </label>
+                <input
+                  id="phone-number"
+                  name="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  type="tel"
+                  placeholder="123-456-7890"
+                  className={`w-full px-3 py-2 border ${
+                    errors.phoneNumber ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.phoneNumber
+                      ? "focus:ring-red-500"
+                      : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                />
+                {errors.phoneNumber && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.phoneNumber}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-5">
               {/* Country Input */}
-              <div className="relative">
+              <div
+                className="flex-1 flex flex-col relative"
+                ref={countryDropdownRef}
+              >
                 <label
                   htmlFor="country-search"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
                 >
                   Country
                 </label>
@@ -399,28 +761,49 @@ function IndianPincodesAdv() {
                   onFocus={() => setIsSearchingCountry(true)}
                   type="text"
                   placeholder="choose country"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border ${
+                    errors.country ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.country
+                      ? "focus:ring-red-500"
+                      : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
+                {errors.country && (
+                  <p className="text-red-500 text-xs mt-1">{errors.country}</p>
+                )}
                 {isSearchingCountry && (
-                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {filteredCountries.map((country) => (
-                      <li
-                        key={country.id}
-                        onClick={() => handleCountrySelect(country)}
-                        className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                      >
-                        {country.name}
-                      </li>
-                    ))}
-                  </ul>
+                  <Suspense fallback={<Loading />}>
+                    {isLoadingCountries ? (
+                      <Loading />
+                    ) : (
+                      <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                        {filteredCountries.map((country) => (
+                          <li
+                            key={country.id}
+                            onClick={() => {
+                              handleCountrySelect(country);
+                              setIsSearchingCountry(false);
+                            }}
+                            className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                          >
+                            {country.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Suspense>
                 )}
               </div>
 
               {/* State Input */}
-              <div className="relative">
+              <div
+                className="flex-1 flex flex-col relative"
+                ref={stateDropdownRef}
+              >
                 <label
                   htmlFor="state-search"
-                  className="block text-sm font-medium text-gray-700 mb-1 "
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
                 >
                   State
                 </label>
@@ -444,31 +827,46 @@ function IndianPincodesAdv() {
                   onFocus={() => setIsSearchingState(true)}
                   placeholder="Choose state"
                   disabled={!selectedCountry}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className={`w-full px-3 py-2 border ${
+                    errors.state ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.state ? "focus:ring-red-500" : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
+                {errors.state && (
+                  <p className="text-red-500 text-xs mt-1">{errors.state}</p>
+                )}
                 {selectedCountry && isSearchingState && (
-                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                  <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {filteredStates.map((state) => (
                       <li
                         key={state.state_id}
-                        onClick={() => handleStateSelect(state)}
+                        onClick={() => {
+                          handleStateSelect(state);
+                          setIsSearchingState(false);
+                        }}
                         className="px-3 py-2 cursor-pointer hover:bg-gray-100"
                       >
-                        {state.state_name.charAt(0).toLowerCase() + state.state_name.slice(1).toLowerCase()}
+                        {state.state_name.charAt(0).toLowerCase() +
+                          state.state_name.slice(1).toLowerCase()}
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
             </div>
+
             {isIndianPlaces ? (
               <>
-                <div className="inline-flex gap-5">
+                <div className="flex gap-5">
                   {/* District Input */}
-                  <div className="relative">
+                  <div
+                    className="flex-1 flex flex-col relative"
+                    ref={districtDropdownRef}
+                  >
                     <label
                       htmlFor="district-search"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
                     >
                       District
                     </label>
@@ -490,14 +888,28 @@ function IndianPincodesAdv() {
                       onFocus={() => setIsSearchingDistrict(true)}
                       placeholder="Choose district"
                       disabled={!selectedState}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className={`w-full px-3 py-2 border ${
+                        errors.district ? "border-red-500" : "border-gray-300"
+                      } rounded-md focus:outline-none focus:ring-2 ${
+                        errors.district
+                          ? "focus:ring-red-500"
+                          : "focus:ring-blue-500"
+                      } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                     />
+                    {errors.district && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.district}
+                      </p>
+                    )}
                     {selectedState && isSearchingDistrict && (
-                      <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                      <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                         {filteredDistricts.map((district) => (
                           <li
                             key={district}
-                            onClick={() => handleDistrictSelect(district)}
+                            onClick={() => {
+                              handleDistrictSelect(district);
+                              setIsSearchingDistrict(false);
+                            }}
                             className="px-3 py-2 cursor-pointer hover:bg-gray-100"
                           >
                             {district}
@@ -508,10 +920,13 @@ function IndianPincodesAdv() {
                   </div>
 
                   {/* Taluk Input */}
-                  <div className="relative">
+                  <div
+                    className="flex-1 flex flex-col relative"
+                    ref={talukDropdownRef}
+                  >
                     <label
                       htmlFor="taluk-search"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
                     >
                       Taluk
                     </label>
@@ -532,14 +947,28 @@ function IndianPincodesAdv() {
                       onFocus={() => setIsSearchingTaluk(true)}
                       placeholder="Choose taluk"
                       disabled={!districtSearch}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className={`w-full px-3 py-2 border ${
+                        errors.taluk ? "border-red-500" : "border-gray-300"
+                      } rounded-md focus:outline-none focus:ring-2 ${
+                        errors.taluk
+                          ? "focus:ring-red-500"
+                          : "focus:ring-blue-500"
+                      } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                     />
+                    {errors.taluk && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.taluk}
+                      </p>
+                    )}
                     {districtSearch && isSearchingTaluk && (
-                      <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                      <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                         {filteredTaluks.map((taluk) => (
                           <li
                             key={taluk}
-                            onClick={() => handleTalukSelect(taluk)}
+                            onClick={() => {
+                              handleTalukSelect(taluk);
+                              setIsSearchingTaluk(false);
+                            }}
                             className="px-3 py-2 cursor-pointer hover:bg-gray-100"
                           >
                             {taluk}
@@ -549,75 +978,112 @@ function IndianPincodesAdv() {
                     )}
                   </div>
                 </div>
-                {/* Branch Office Input */}
-                <div className="relative">
-                  <label
-                    htmlFor="branch-office-search"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Branch Office (Office Name)
-                  </label>
-                  <input
-                    id="branch-office-search"
-                    type="text"
-                    name="branchOffice"
-                    value={branchOfficeSearch}
-                    onChange={(e) => {
-                      setBranchOfficeSearch(e.target.value);
-                      setIsSearchingOffice(true);
-                      if (!e.target.value) {
-                        setBranchOfficeSearch("");
-                        setPincodeSearch("");
-                      }
-                    }}
-                    onFocus={() => setIsSearchingOffice(true)}
-                    placeholder="Choose branch office"
-                    disabled={!talukSearch}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  />
-                  {talukSearch && isSearchingOffice && (
-                    <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                      {filteredBranchOffices.map((office) => (
-                        <li
-                          key={office.id}
-                          onClick={() => handleBranchOfficeSelect(office)}
-                          className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                        >
-                          {office.officeName} - {office.pincode}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
 
-                {/* Pincode Input */}
-                <div>
-                  <label
-                    htmlFor="pincode"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                <div className="flex gap-5">
+                  {/* Branch Office Input */}
+                  <div
+                    className="flex-1 flex flex-col relative"
+                    ref={branchOfficeDropdownRef}
                   >
-                    Pincode
-                  </label>
-                  <input
-                    id="pincode"
-                    type="text"
-                    name="pincode"
-                    value={pincodeSearch}
-                    onChange={(e) => {
-                      setPincodeSearch(e.target.value);
-                      if (!e.target.value) {
-                        setPincodeSearch("");
-                      }
-                    }}
-                    placeholder="Pincode"
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-                  />
+                    <label
+                      htmlFor="branch-office-search"
+                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                    >
+                      Branch Office
+                    </label>
+                    <div className="flex-1 relative">
+                      <input
+                        id="branch-office-search"
+                        type="text"
+                        name="branchOffice"
+                        value={branchOfficeSearch}
+                        onChange={(e) => {
+                          setBranchOfficeSearch(e.target.value);
+                          setIsSearchingOffice(true);
+                          if (!e.target.value) {
+                            setBranchOfficeSearch("");
+                            setPincodeSearch("");
+                          }
+                        }}
+                        onFocus={() => setIsSearchingOffice(true)}
+                        placeholder="Choose branch office"
+                        disabled={!talukSearch}
+                        className={`w-full px-3 py-2 border ${
+                          errors.branchOffice
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        } rounded-md focus:outline-none focus:ring-2 ${
+                          errors.branchOffice
+                            ? "focus:ring-red-500"
+                            : "focus:ring-blue-500"
+                        } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                      />
+                      {errors.branchOffice && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.branchOffice}
+                        </p>
+                      )}
+                      {talukSearch && isSearchingOffice && (
+                        <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {filteredBranchOffices.map((office) => (
+                            <li
+                              key={office.id}
+                              onClick={() => {
+                                handleBranchOfficeSelect(office);
+                                setIsSearchingOffice(false);
+                              }}
+                              className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                            >
+                              {office.officeName} - {office.pincode}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pincode Input */}
+                  <div className="flex-1 flex flex-col relative">
+                    <label
+                      htmlFor="pincode"
+                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                    >
+                      Pincode
+                    </label>
+                    <div className="flex-1">
+                      <input
+                        id="pincode"
+                        type="text"
+                        name="pincode"
+                        value={pincodeSearch}
+                        onChange={(e) => {
+                          setPincodeSearch(e.target.value);
+                          if (!e.target.value) {
+                            setPincodeSearch("");
+                          }
+                        }}
+                        placeholder="Pincode"
+                        readOnly
+                        className={`w-full px-3 py-2 border ${
+                          errors.pincode ? "border-red-500" : "border-gray-300"
+                        } rounded-md focus:outline-none focus:ring-2 ${
+                          errors.pincode
+                            ? "focus:ring-red-500"
+                            : "focus:ring-blue-500"
+                        } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                      />
+                      {errors.pincode && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.pincode}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (
               // City Input for non-Indian places
-              <div className="relative">
+              <div className="relative" ref={cityDropdownRef}>
                 <label
                   htmlFor="city-search"
                   className="block text-sm font-medium text-gray-700 mb-1"
@@ -636,15 +1102,25 @@ function IndianPincodesAdv() {
                   onFocus={() => setIsSearchingCity(true)}
                   placeholder="Choose city"
                   disabled={!selectedState}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className={`w-full px-3 py-2 border ${
+                    errors.city ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.city ? "focus:ring-red-500" : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
+                {errors.city && (
+                  <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                )}
                 {selectedState && isSearchingCity && !isLoadingCities && (
                   <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {filteredCities.length > 0 ? (
                       filteredCities.map((city) => (
                         <li
                           key={city.city_id}
-                          onClick={() => handleCitySelect(city)}
+                          onClick={() => {
+                            handleCitySelect(city);
+                            setIsSearchingCity(false);
+                          }}
                           className="px-3 py-2 cursor-pointer hover:bg-gray-100"
                         >
                           {city.city_name}
@@ -659,14 +1135,69 @@ function IndianPincodesAdv() {
                 )}
               </div>
             )}
-
-            {/* Submit Button */}
+            {/* Flat/Floor/H.No */}
+            <div className="flex gap-5">
+              <div className="flex-1 flex flex-col relative">
+                <label
+                  htmlFor="flat-floor-hno"
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                >
+                  Address
+                </label>
+                <input
+                  id="flat-floor-hno"
+                  type="text"
+                  name="flatFloorHno"
+                  value={addressLine}
+                  onChange={(e) => setAddressLine(e.target.value)}
+                  placeholder="Flat/Floor/H.No"
+                  className={`w-full px-3 py-2 border ${
+                    errors.addressLine ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.addressLine
+                      ? "focus:ring-red-500"
+                      : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                />
+                {errors.addressLine && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.addressLine}
+                  </p>
+                )}
+              </div>
+              {/* Landmark */}
+              <div className="flex-1 flex flex-col relative">
+                <label
+                  htmlFor="landmark"
+                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                >
+                  Landmark
+                </label>
+                <input
+                  id="landmark"
+                  type="text"
+                  name="landmark"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  placeholder="Landmark"
+                  className={`w-full px-3 py-2 border ${
+                    errors.landmark ? "border-red-500" : "border-gray-300"
+                  } rounded-md focus:outline-none focus:ring-2 ${
+                    errors.landmark
+                      ? "focus:ring-red-500"
+                      : "focus:ring-blue-500"
+                  } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                />
+                {errors.landmark && (
+                  <p className="text-red-500 text-xs mt-1">{errors.landmark}</p>
+                )}
+              </div>
+            </div>
             <button
               className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
               type="submit"
               onClick={(e) => {
-                e.preventDefault();
-                handleSubmit();
+                handleSubmit(e);
               }}
             >
               Submit
