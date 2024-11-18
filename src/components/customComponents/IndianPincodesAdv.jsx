@@ -7,6 +7,7 @@ import {
   useRef,
 } from "react";
 import DOMPurify from "dompurify";
+import ResubmitModal from "./ResubmitModal";
 
 function IndianPincodesAdv() {
   const [firstName, setFirstName] = useState("");
@@ -59,6 +60,11 @@ function IndianPincodesAdv() {
   const districtDropdownRef = useRef(null);
   const talukDropdownRef = useRef(null);
   const branchOfficeDropdownRef = useRef(null);
+
+  const [submissionStatus, setSubmissionStatus] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResubmitModal, setShowResubmitModal] = useState(false);
+  const [formData, setFormData] = useState([]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -238,8 +244,6 @@ function IndianPincodesAdv() {
     if (selectedCountry && selectedState) {
       setIsLoadingCities(true);
       if (isIndianPlaces) {
-        // For Indian cities, we don't need to do anything here
-        // as we're handling districts and taluks separately
         setIsLoadingCities(false);
       } else {
         const filteredCities = allCities
@@ -313,7 +317,7 @@ function IndianPincodesAdv() {
   }, [optimizedIndianData, selectedState, districtSearch, talukSearch]);
 
   {
-    /* Searching in Branch Offices for Input field */
+    /* Searching in Branch Offices */
   }
   const filteredBranchOffices = useMemo(() => {
     if (!selectedState || !districtSearch || !talukSearch) return [];
@@ -340,80 +344,7 @@ function IndianPincodesAdv() {
     talukSearch,
     branchOfficeSearch,
   ]);
-
-  const handleCountrySelect = useCallback((country) => {
-    setSelectedCountry(country);
-    setCountrySearch(country.name);
-    setSelectedState(null);
-    setStateSearch("");
-    setCitySearch("");
-    setCities([]);
-    setIsSearchingCountry(false);
-    setIsIndianPlaces(country.name === "India");
-    if (country.name !== "India") {
-      setDistrictSearch("");
-      setTalukSearch("");
-      setBranchOfficeSearch("");
-      setPincodeSearch("");
-    }
-  }, []);
-
-  const handleStateSelect = useCallback(
-    (state) => {
-      setSelectedState(state);
-      setStateSearch(state.state_name);
-      setCitySearch("");
-      setIsSearchingState(false);
-
-      if (isIndianPlaces) {
-        setCitySearch("");
-        setDistrictSearch("");
-        setTalukSearch("");
-        setBranchOfficeSearch("");
-        setPincodeSearch("");
-      } else {
-        // Reset Indian-specific fields
-        setDistrictSearch("");
-        setTalukSearch("");
-        setBranchOfficeSearch("");
-        setPincodeSearch("");
-      }
-    },
-    [isIndianPlaces]
-  );
-
-  const handleCitySelect = useCallback((city) => {
-    setSelectedCity(city.city_name);
-    setCitySearch(city.city_name);
-    setIsSearchingCity(false);
-  }, []);
-
-  const handleDistrictSelect = useCallback((district) => {
-    setDistrictSearch(district);
-    setSelectedDistrict(district);
-    setIsSearchingDistrict(false);
-    setTalukSearch("");
-    setBranchOfficeSearch("");
-    setPincodeSearch("");
-  }, []);
-
-  const handleTalukSelect = useCallback((taluk) => {
-    setSelectedTaluk(taluk);
-    setIsSearchingTaluk(false);
-    setTalukSearch(taluk);
-    setBranchOfficeSearch("");
-    setPincodeSearch("");
-  }, []);
-
-  const handleBranchOfficeSelect = useCallback((office) => {
-    setSelectedBranchOffice(office.officeName);
-    setBranchOfficeSearch(office.officeName);
-    setPincodeSearch(office.pincode.toString());
-    setSelectedPincode(office.pincode.toString());
-    setIsSearchingOffice(false);
-  }, []);
-
-  const validateForm = useCallback(() => {
+  const validateAllFields = useCallback(() => {
     const newErrors = {};
     const firstNameErrors = [];
     const lastNameErrors = [];
@@ -459,7 +390,7 @@ function IndianPincodesAdv() {
         lastNameErrors.push("Last name contains invalid characters");
       }
     }
-  
+
     if (lastNameErrors.length > 0) {
       newErrors.lastName = lastNameErrors;
     }
@@ -530,8 +461,8 @@ function IndianPincodesAdv() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [
+    return newErrors;
+    }, [
     firstName,
     lastName,
     email,
@@ -547,46 +478,431 @@ function IndianPincodesAdv() {
     landmark,
     isIndianPlaces,
   ]);
+  const validateForm = useCallback(
+    (field, value) => {
+      const newErrors = { ...errors };
+      // Validate firstName
+      if (field === "firstName") {
+        newErrors.firstName = [];
+        if (!value || value.trim().length === 0) {
+          newErrors.firstName.push("First name is required");
+        }
+        if (value.trim().length < 3) {
+          newErrors.firstName.push(
+            "First name should be at least 3 characters long"
+          );
+        }
+        if (!/^[A-Za-z]+$/.test(value.trim())) {
+          newErrors.firstName.push("First name should contain only alphabets");
+        }
+        if (value.trim().length > 10) {
+          newErrors.firstName.push(
+            "First name should not exceed 10 characters"
+          );
+        }
+        if (newErrors.firstName.length === 0) {
+          delete newErrors.firstName;
+        }
+      }
+
+      // Validate lastName
+      if (field === "lastName") {
+        newErrors.lastName = [];
+        if (!value || value.trim().length === 0) {
+          newErrors.lastName.push("Last name is required");
+        }
+        if (value.trim().length < 2) {
+          newErrors.lastName.push(
+            "Last name should be at least 2 characters long"
+          );
+        }
+        if (!/^[A-Za-z]+$/.test(value.trim())) {
+          newErrors.lastName.push("Last name should contain only alphabets");
+        }
+        if (value.trim().length > 10) {
+          newErrors.lastName.push("Last name should not exceed 10 characters");
+        } else {
+          if (newErrors.lastName.length === 0) {
+            delete newErrors.lastName;
+          }
+        }
+      }
+
+      // Validate email
+      if (field === "email") {
+        newErrors.email = [];
+        if (!value || !value.trim()) {
+          newErrors.email.push("Email is required");
+        } else if (!/\S+@\S+\.\S+/.test(value)) {
+          newErrors.email.push("Email is invalid");
+        } else {
+          if (newErrors.email.length === 0) {
+            delete newErrors.email;
+          }
+        }
+      }
+
+      // Validate phoneNumber
+      if (field === "phoneNumber") {
+        newErrors.phoneNumber = [];
+        if (!value || !value.trim()) {
+          newErrors.phoneNumber = "Phone number is required";
+        } else if (!/^\d{10}$/.test(value.replace(/\D/g, ""))) {
+          newErrors.phoneNumber = "Phone number must be 10 digits";
+        } else {
+          if (newErrors.phoneNumber.length === 0) {
+            delete newErrors.phoneNumber;
+          }
+        }
+      }
+
+      // Validate country
+      if (field === "country") {
+        if (!value) {
+          newErrors.country = "Country is required";
+        } else {
+          delete newErrors.country;
+        }
+      }
+
+      // Validate state
+      if (field === "state") {
+        if (!value) {
+          newErrors.state = "State is required";
+        } else {
+          delete newErrors.state;
+        }
+      }
+
+      // Validate Indian-specific fields
+      if (isIndianPlaces) {
+        if (field === "district") {
+          if (!value || !value.trim()) {
+            newErrors.district = "District is required";
+          } else {
+            delete newErrors.district;
+          }
+        }
+        if (field === "taluk") {
+          if (!value || !value.trim()) {
+            newErrors.taluk = "Taluk is required";
+          } else {
+            delete newErrors.taluk;
+          }
+        }
+        if (field === "branchOffice") {
+          if (!value || !value.trim()) {
+            newErrors.branchOffice = "Branch office is required";
+          } else {
+            delete newErrors.branchOffice;
+          }
+        }
+        if (field === "pincode") {
+          if (!value || !value.trim()) {
+            newErrors.pincode = "Pincode is required";
+          } else {
+            delete newErrors.pincode;
+          }
+        }
+      } else {
+        // Validate city for non-Indian places
+        if (field === "city") {
+          if (!value || !value.trim()) {
+            newErrors.city = "City is required";
+          } else {
+            delete newErrors.city;
+          }
+        }
+      }
+
+      // Validate addressLine
+      if (field === "addressLine") {
+        newErrors.addressLine = [];
+        if (!value || !value.trim()) {
+          newErrors.addressLine = "Address is required";
+        } else {
+          const sanitizedAddress = DOMPurify.sanitize(value.trim());
+          if (sanitizedAddress !== value.trim()) {
+            newErrors.addressLine = "Address contains invalid characters";
+          } else {
+            if (newErrors.addressLine.length === 0) {
+              delete newErrors.addressLine;
+            }
+          }
+        }
+      }
+
+      // Validate landmark
+      if (field === "landmark") {
+        newErrors.landmark = [];
+        if (!value || !value.trim()) {
+          newErrors.landmark = "Landmark is required";
+        } else {
+          const sanitizedLandmark = DOMPurify.sanitize(value.trim());
+          if (sanitizedLandmark !== value.trim()) {
+            newErrors.landmark = "Landmark contains invalid characters";
+          } else {
+            if (newErrors.landmark.length === 0) {
+              delete newErrors.landmark;
+            }
+          }
+        }
+      }
+
+      console.log("Validation errors:", newErrors);
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0 ? null : newErrors;
+    },
+    [isIndianPlaces, errors]
+  );
+
+  const resetForm = useCallback(() => {
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPhoneNumber("");
+    setAddressLine("");
+    setLandmark("");
+    setSelectedCountry(null);
+    setSelectedState(null);
+    setSelectedCity(null);
+    setSelectedDistrict(null);
+    setSelectedTaluk(null);
+    setSelectedBranchOffice(null);
+    setSelectedPincode(null);
+    setCountrySearch("");
+    setStateSearch("");
+    setCitySearch("");
+    setDistrictSearch("");
+    setTalukSearch("");
+    setBranchOfficeSearch("");
+    setPincodeSearch("");
+    setErrors({});
+  }, []);
+  const handleFirstNameChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setFirstName(value);
+      const newErrors = validateForm("firstName", value);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleLastNameChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setLastName(value);
+      const newErrors = validateForm("lastName", value);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleMailChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setEmail(value);
+      const newErrors = validateForm("email", value);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handlePhoneNumberChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setPhoneNumber(value);
+      const newErrors = validateForm("phoneNumber", value);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleAddressLineChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setAddressLine(value);
+      const newErrors = validateForm("addressLine", value);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleLandmarkChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setLandmark(value);
+      const newErrors = validateForm("landmark", value);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleCountrySelect = useCallback(
+    (country) => {
+      setSelectedCountry(country);
+      setCountrySearch(country.name);
+      setSelectedState(null);
+      setStateSearch("");
+      setCitySearch("");
+      setCities([]);
+      setIsSearchingCountry(false);
+      setIsIndianPlaces(country.name === "India");
+      validateForm("country", country.name);
+      if (country.name !== "India") {
+        setDistrictSearch("");
+        setTalukSearch("");
+        setBranchOfficeSearch("");
+        setPincodeSearch("");
+        const newErrors = validateForm("country", country.name);
+        setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+      }
+    },
+    [validateForm]
+  );
+
+  const handleStateSelect = useCallback(
+    (state) => {
+      setSelectedState(state);
+      setStateSearch(state.state_name);
+      setCitySearch("");
+      setIsSearchingState(false);
+      const newErrors = validateForm("state", state.state_name);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+
+      if (isIndianPlaces) {
+        setCitySearch("");
+        setDistrictSearch("");
+        setTalukSearch("");
+        setBranchOfficeSearch("");
+        setPincodeSearch("");
+        const newErrors = validateForm("state", state.state_name);
+        setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+      } else {
+        // Reset Indian-specific fields
+        setDistrictSearch("");
+        setTalukSearch("");
+        setBranchOfficeSearch("");
+        setPincodeSearch("");
+      }
+    },
+    [isIndianPlaces, validateForm]
+  );
+
+  const handleCitySelect = useCallback(
+    (city) => {
+      setSelectedCity(city.city_name);
+      setCitySearch(city.city_name);
+      setIsSearchingCity(false);
+      const newErrors = validateForm("city", city.city_name);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleDistrictSelect = useCallback(
+    (district) => {
+      setDistrictSearch(district);
+      setSelectedDistrict(district);
+      setIsSearchingDistrict(false);
+      setTalukSearch("");
+      setBranchOfficeSearch("");
+      setPincodeSearch("");
+      const newErrors = validateForm("district", district);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleTalukSelect = useCallback(
+    (taluk) => {
+      setSelectedTaluk(taluk);
+      setIsSearchingTaluk(false);
+      setTalukSearch(taluk);
+      setBranchOfficeSearch("");
+      setPincodeSearch("");
+      const newErrors = validateForm("taluk", taluk);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
+
+  const handleBranchOfficeSelect = useCallback(
+    (office) => {
+      setSelectedBranchOffice(office.officeName);
+      setBranchOfficeSearch(office.officeName);
+      setPincodeSearch(office.pincode.toString());
+      setSelectedPincode(office.pincode.toString());
+      setIsSearchingOffice(false);
+      const newErrors = validateForm("branchOffice", office.officeName);
+      setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
+    },
+    [validateForm]
+  );
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => {
       if (e) {
         e.preventDefault();
       }
-      if (validateForm()) {
-        const formData = {
-          personalInfo: {
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-          },
-          address: {
-            addressLine,
-            landmark,
-            country: selectedCountry?.name,
-            state: selectedState?.state_name,
-            ...(isIndianPlaces
-              ? {
-                  district: selectedDistrict,
-                  taluk: selectedTaluk,
-                  branchOffice: selectedBranchOffice,
-                  pincode: selectedPincode,
-                }
-              : {
-                  city: citySearch,
-                }),
-          },
-        };
-
-        console.log("Form data:", formData);
-        // Here you would typically send the data to your backend or perform further actions
-        return formData;
-      } else {
-        console.log("Form has errors. Please correct them.");
+      if (isSubmitting) {
+        setShowResubmitModal(true);
+        return;
       }
+
+      setErrors({});
+      setIsSubmitting(true);
+
+      const formErrors = validateAllFields();
+      console.log("form errors:", formErrors);
+      
+      if (Object.keys(formErrors).length === 0) {
+        try {
+          const formData = {
+            timeOfSubmission: new Date().toISOString(),
+            personalInfo: { firstName, lastName, email, phoneNumber },
+            address: {
+              addressLine,
+              landmark,
+              country: selectedCountry?.name,
+              state: selectedState?.state_name,
+              city: isIndianPlaces ? selectedBranchOffice : selectedCity,
+              district: isIndianPlaces ? selectedDistrict : null,
+              taluk: isIndianPlaces ? selectedTaluk : null,
+              pincode: isIndianPlaces ? selectedPincode : null,
+            },
+          };
+
+          // Replace this with your actual API call
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          setFormData(formData);
+          setSubmissionStatus({
+            type: "success",
+            message: "Form submitted successfully!",
+          });
+          resetForm();
+        } catch (error) {
+          console.error("Submission error:", error);
+          setSubmissionStatus({
+            type: "error",
+            message: "Form submission failed. Please try again.",
+          });
+        }
+      } else {
+        setErrors(formErrors);
+        setSubmissionStatus({
+          type: "error",
+          message: "Please correct the errors in the form.",
+        });
+      }
+
+      setIsSubmitting(false);
     },
     [
+      isSubmitting,
+      resetForm,
       firstName,
       lastName,
       email,
@@ -595,22 +911,23 @@ function IndianPincodesAdv() {
       landmark,
       selectedCountry,
       selectedState,
+      selectedCity,
       selectedDistrict,
       selectedTaluk,
       selectedBranchOffice,
       selectedPincode,
       isIndianPlaces,
-      citySearch,
-      validateForm,
+      validateAllFields,
     ]
   );
+
   function Loading() {
     return <h2>🌀 Loading...</h2>;
   }
   return (
-    <div className="flex pt-20 pb-20 w-full justify-center">
-      <div className="flex h-auto w-[400px] bg-white shadow-3xl rounded-[25px] p-8">
-        <form action="/" className="flex flex-col w-full">
+    <div className="flex flex-col md:flex-row gap-8 p-6 justify-center">
+      <div className="flex h-auto w-[400px] md:w-2/4 bg-white shadow-3xl rounded-[25px] p-8 transition-all ease-in-out duration-200">
+        <form onSubmit={handleSubmit} className="flex flex-col w-full">
           <div className="flex flex-col gap-y-6">
             <div className="flex gap-5">
               {/* First Name */}
@@ -625,7 +942,9 @@ function IndianPincodesAdv() {
                   id="first-name"
                   name="firstName"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => {
+                    handleFirstNameChange(e);
+                  }}
                   type="text"
                   placeholder="Rajkiran"
                   className={`w-full px-3 py-2 border ${
@@ -656,7 +975,7 @@ function IndianPincodesAdv() {
                   id="last-name"
                   name="lastName"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => handleLastNameChange(e)}
                   type="text"
                   placeholder="Dev"
                   className={`w-full px-3 py-2 border ${
@@ -667,7 +986,7 @@ function IndianPincodesAdv() {
                       : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.lastName && Array.isArray( errors.lastName ) && (
+                {errors.lastName && Array.isArray(errors.lastName) && (
                   <div className="text-red-500 flex flex-col text-xs mt-1 gap-1">
                     {errors.lastName.map((error, index) => (
                       <p key={index}>{error}</p>
@@ -690,7 +1009,7 @@ function IndianPincodesAdv() {
                   id="email"
                   name="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => handleMailChange(e)}
                   type="email"
                   placeholder="rajkiran.dev@example.com"
                   className={`w-full px-3 py-2 border ${
@@ -715,7 +1034,7 @@ function IndianPincodesAdv() {
                   id="phone-number"
                   name="phoneNumber"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={(e) => handlePhoneNumberChange(e)}
                   type="tel"
                   placeholder="123-456-7890"
                   className={`w-full px-3 py-2 border ${
@@ -1149,7 +1468,7 @@ function IndianPincodesAdv() {
                   type="text"
                   name="flatFloorHno"
                   value={addressLine}
-                  onChange={(e) => setAddressLine(e.target.value)}
+                  onChange={(e) => handleAddressLineChange(e)}
                   placeholder="Flat/Floor/H.No"
                   className={`w-full px-3 py-2 border ${
                     errors.addressLine ? "border-red-500" : "border-gray-300"
@@ -1178,7 +1497,7 @@ function IndianPincodesAdv() {
                   type="text"
                   name="landmark"
                   value={landmark}
-                  onChange={(e) => setLandmark(e.target.value)}
+                  onChange={(e) => handleLandmarkChange(e)}
                   placeholder="Landmark"
                   className={`w-full px-3 py-2 border ${
                     errors.landmark ? "border-red-500" : "border-gray-300"
@@ -1196,15 +1515,90 @@ function IndianPincodesAdv() {
             <button
               className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
               type="submit"
-              onClick={(e) => {
-                handleSubmit(e);
-              }}
+              disabled={isSubmitting}
             >
-              Submit
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
+            {submissionStatus && (
+              <div
+                className={`mt-4 p-2 rounded-md ${
+                  submissionStatus.type === "success"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
+                {submissionStatus.message}
+              </div>
+            )}
           </div>
         </form>
+        {showResubmitModal && (
+          <ResubmitModal
+            setShowResubmitModal={setShowResubmitModal}
+            handleSubmit={handleSubmit}
+          />
+        )}
       </div>
+      {/* Form Data Table */}
+      {Object.keys(formData).length > 0 && (
+        <div className="w-auto md:w-1.5/4 transition-all ease-in-out duration-150">
+          <h2 className="text-xl text-center bg-lime-200 font-bold text-gray-700 mb-4 md:p-4 ">
+            Form Data
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <tbody>
+                {formData.timeOfSubmission && (
+                  <tr>
+                    <td className="px-6 py-4 text-left text-sm text-gray-900">
+                      Time of Submission
+                    </td>
+                    <td className="px-6 py-4 text-left text-sm text-gray-900">
+                      {new Date(formData.timeOfSubmission).toLocaleString()}
+                    </td>
+                  </tr>
+                )}
+                {Object.entries(formData).map(
+                  ([sectionTitle, sectionData], sectionIndex) => {
+                    if (sectionTitle === "timeOfSubmission") return null;
+                    if (typeof sectionData !== "object" || sectionData === null)
+                      return null;
+
+                    return (
+                      <React.Fragment key={sectionIndex}>
+                        <tr>
+                          <td
+                            colSpan="2"
+                            className="px-6 py-4 text-left text-sm font-bold text-gray-900 bg-violet-100"
+                          >
+                            {sectionTitle}
+                          </td>
+                        </tr>
+                        {Object.entries(sectionData).map(
+                          ([fieldName, fieldValue], index) => (
+                            <tr key={index}>
+                              <td className="px-6 py-4 text-left text-stone-800 bg-yellow-100">
+                                {fieldName.charAt(0).toUpperCase() +
+                                  fieldName.slice(1).toLowerCase()}
+                              </td>
+                              <td className="px-6 py-4 text-left text-sm text-gray-600 border">
+                                {fieldValue !== null && fieldValue !== undefined
+                                  ? String(fieldValue)
+                                  : "N/A"}
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </React.Fragment>
+                    );
+                  }
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {/* End of */}
     </div>
   );
 }
