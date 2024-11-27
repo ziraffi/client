@@ -8,8 +8,9 @@ import {
 } from "react";
 import DOMPurify from "dompurify";
 import ResubmitModal from "./ResubmitModal";
+import indianJsonData from '/assets/JSON/IndianPincodesData.json?url'
 
-function IndianPincodesAdv() {
+function FormCountryDropdown() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -123,8 +124,20 @@ function IndianPincodesAdv() {
           fetch(
             "https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/refs/heads/master/json/cities.json"
           ),
-          fetch("../assets/JSON/IndianPincodesData.json"),
+          fetch(indianJsonData),
         ]);
+
+        // Check if any response is not ok
+        for (const response of [
+          countriesResponse,
+          statesResponse,
+          citiesResponse,
+          indianDataResponse,
+        ]) {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+        }
 
         const countriesData = await countriesResponse.json();
         const statesData = await statesResponse.json();
@@ -188,8 +201,11 @@ function IndianPincodesAdv() {
         }, {});
 
         setIndianData(indianData);
+
         setOptimizedIndianData(optimizedData);
-        // console.log(
+
+        console.log("Optimized data:", optimizedData);
+
         //   "Data loaded - Countries:",
         //   countriesData.length,
         //   "No.States:",
@@ -209,7 +225,6 @@ function IndianPincodesAdv() {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData().finally(() => setIsLoadingCountries(false));
   }, []);
 
@@ -462,7 +477,7 @@ function IndianPincodesAdv() {
 
     setErrors(newErrors);
     return newErrors;
-    }, [
+  }, [
     firstName,
     lastName,
     email,
@@ -856,28 +871,60 @@ function IndianPincodesAdv() {
 
       const formErrors = validateAllFields();
       console.log("form errors:", formErrors);
-      
+
       if (Object.keys(formErrors).length === 0) {
         try {
           const formData = {
             timeOfSubmission: new Date().toISOString(),
+            isIndia: selectedCountry?.name.toLowerCase() === "india",
             personalInfo: { firstName, lastName, email, phoneNumber },
             address: {
               addressLine,
               landmark,
               country: selectedCountry?.name,
               state: selectedState?.state_name,
-              city: isIndianPlaces ? selectedBranchOffice : selectedCity,
-              district: isIndianPlaces ? selectedDistrict : null,
-              taluk: isIndianPlaces ? selectedTaluk : null,
-              pincode: isIndianPlaces ? selectedPincode : null,
+              ...(isIndianPlaces
+                ? {
+                    district: selectedDistrict,
+                    taluk: selectedTaluk,
+                    branchOffice: selectedBranchOffice,
+                    pincode: selectedPincode,
+                  }
+                : {
+                    city: selectedCity,
+                  }),
             },
           };
 
-          // Replace this with your actual API call
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          console.log("Form data:", formData);
 
-          setFormData(formData);
+          const response = await fetch("http://localhost:3000/formData", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            if (
+              response.status === 409 &&
+              errorData.details &&
+              errorData.details.includes("duplicate key error")
+            ) {
+              throw new Error(
+                "Email address already exists. Please use a different email."
+              );
+            } else {
+              throw new Error(
+                errorData.error || `HTTP error! status: ${response.status}`
+              );
+            }
+          }
+
+          const data = await response.json();
+          console.log("API response:", data);
           setSubmissionStatus({
             type: "success",
             message: "Form submitted successfully!",
@@ -887,7 +934,8 @@ function IndianPincodesAdv() {
           console.error("Submission error:", error);
           setSubmissionStatus({
             type: "error",
-            message: "Form submission failed. Please try again.",
+            message:
+              error.message || "Form submission failed. Please try again.",
           });
         }
       } else {
@@ -1603,4 +1651,4 @@ function IndianPincodesAdv() {
   );
 }
 
-export default IndianPincodesAdv;
+export default FormCountryDropdown;
