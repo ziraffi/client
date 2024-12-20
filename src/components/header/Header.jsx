@@ -5,6 +5,7 @@ import StoreBar from "./StoreBar";
 function Header() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;

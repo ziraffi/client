@@ -973,8 +973,8 @@ function FormCountryDropdown() {
     return <h2>🌀 Loading...</h2>;
   }
   return (
-    <div className="flex flex-col md:flex-row gap-8 p-6 justify-center align-middle bg-stone-50">
-      <div className="flex h-auto w-full lg:w-2/4 bg-white drop-shadow-md rounded-[25px] p-8 transition-all ease-in-out duration-200">
+    <div className="flex flex-col md:flex-row gap-8 p-6 justify-center items-center">
+      <div className="flex h-auto w-full lg:w-2/4 bg-slate-500 drop-shadow-md rounded-[25px] p-8 transition-all ease-in-out duration-200">
         <form onSubmit={handleSubmit} className="flex flex-col w-full">
           <div className="flex flex-col gap-y-6">
             <div className="flex gap-5">
@@ -982,7 +982,7 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="first-name"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   First Name
                 </label>
@@ -996,7 +996,7 @@ function FormCountryDropdown() {
                   type="text"
                   placeholder="Rajkiran"
                   className={`w-full px-3 py-2 border ${
-                    errors.firstName ? "border-red-500" : "border-gray-300"
+                    errors.firstName ? "border-red-500 " : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.firstName
                       ? "focus:ring-red-500"
@@ -1004,7 +1004,7 @@ function FormCountryDropdown() {
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
                 {errors.firstName && Array.isArray(errors.firstName) && (
-                  <div className="text-red-500 flex flex-col text-xs mt-1 gap-1">
+                  <div className="text-red-500 bg-slate-100 p-2 flex flex-col text-xs mt-1 gap-1">
                     {errors.firstName.map((error, index) => (
                       <p key={index}>{error}</p>
                     ))}
@@ -1015,7 +1015,7 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="last-name"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Last Name
                 </label>
@@ -1049,7 +1049,7 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="email"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Email
                 </label>
@@ -1074,7 +1074,7 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="phone-number"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Phone No
                 </label>
@@ -1108,7 +1108,7 @@ function FormCountryDropdown() {
               >
                 <label
                   htmlFor="country-search"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Country
                 </label>
@@ -1170,7 +1170,7 @@ function FormCountryDropdown() {
               >
                 <label
                   htmlFor="state-search"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   State
                 </label>
@@ -1233,7 +1233,7 @@ function FormCountryDropdown() {
                   >
                     <label
                       htmlFor="district-search"
-                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                     >
                       District
                     </label>
@@ -1293,7 +1293,7 @@ function FormCountryDropdown() {
                   >
                     <label
                       htmlFor="taluk-search"
-                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                     >
                       Taluk
                     </label>
@@ -1354,7 +1354,7 @@ function FormCountryDropdown() {
                   >
                     <label
                       htmlFor="branch-office-search"
-                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                     >
                       Branch Office
                     </label>
@@ -1413,7 +1413,7 @@ function FormCountryDropdown() {
                   <div className="flex-1 flex flex-col relative">
                     <label
                       htmlFor="pincode"
-                      className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                     >
                       Pincode
                     </label>
@@ -1453,7 +1453,7 @@ function FormCountryDropdown() {
               <div className="relative" ref={cityDropdownRef}>
                 <label
                   htmlFor="city-search"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-stone-50 mb-1"
                 >
                   City
                 </label>
@@ -1507,7 +1507,7 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="flat-floor-hno"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Address
                 </label>
@@ -1536,7 +1536,7 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="landmark"
-                  className="text-base font-bold text-gray-700 mb-1 h-10 flex items-start"
+                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Landmark
                 </label>
@@ -1590,7 +1590,7 @@ function FormCountryDropdown() {
       {/* Form Data Table */}
       {Object.keys(formData).length > 0 && (
         <div className="w-auto md:w-1.5/4 transition-all ease-in-out duration-150">
-          <h2 className="text-xl text-center bg-lime-200 font-bold text-gray-700 mb-4 md:p-4 ">
+          <h2 className="text-xl text-center bg-lime-200 font-bold text-stone-50 mb-4 md:p-4 ">
             Form Data
           </h2>
           <div className="overflow-x-auto">

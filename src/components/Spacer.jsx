@@ -1,9 +1,19 @@
-function Spacer() {
+import { PropTypes } from 'prop-types';
+
+function Spacer({ height }) {
   return (
-    <div className='h-2dvh'>
-      
+    <div style={{ height: `${height}px` }}>
+      {/* Spacer content */}
     </div>
-  )
+  );
 }
 
-export default Spacer
+Spacer.defaultProps = {
+  height: 20,
+};
+
+Spacer.propTypes = {
+  height: PropTypes.number.isRequired,
+};
+
+export default Spacer;
