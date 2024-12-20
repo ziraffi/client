@@ -7,7 +7,7 @@ function Footer() {
         <div className="flex-col w-1/3 items-center text-center min-h-10">Contact</div>
         </div>
         <div className="flex-col md:flex-row">
-            <span>Copyright@Multi-Vendor Management</span>
+            <span>Copyright@Rajkiran Mallikanti</span>
         </div>
     </footer>
   )

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Logo from "./Logo";
+// import Logo from "./Logo";
 import StoreBar from "./StoreBar";
 
 function Header() {
@@ -26,7 +26,7 @@ function Header() {
 
   return (
     <header className="z-50">
-      <div 
+      {/* <div 
         className={`bg-white shadow-md transition-all duration-300`}
         style={{
           height: `${(1 - scrollProgress) * 100}%`,
@@ -37,7 +37,7 @@ function Header() {
         <div className="fluid mx-auto">
           <Logo />
         </div>
-      </div>
+      </div> */}
       <StoreBar scrollProgress={scrollProgress} />
     </header>
   );
