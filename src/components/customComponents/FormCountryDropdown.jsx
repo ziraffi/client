@@ -204,7 +204,7 @@ function FormCountryDropdown() {
 
         setOptimizedIndianData(optimizedData);
 
-        console.log("Optimized data:", optimizedData);
+        // console.log("Optimized data:", optimizedData);
 
         //   "Data loaded - Countries:",
         //   countriesData.length,
