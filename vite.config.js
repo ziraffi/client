@@ -63,7 +63,7 @@ export default defineConfig(({ command, mode }) => {
       sourcemap: command === 'serve',
     },
     server: {
-      port: 5173,
+      port: 5175,
       open: true,
       cors: true,
       strictPort: true,

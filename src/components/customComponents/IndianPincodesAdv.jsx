@@ -649,7 +649,7 @@ function IndianPincodesAdv() {
         }
       }
 
-      console.log("Validation errors:", newErrors);
+      // console.log("Validation errors:", newErrors);
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0 ? null : newErrors;
     },
