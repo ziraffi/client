@@ -1,14 +1,8 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  useCallback,
-  Suspense,
-  useRef,
-} from "react";
+import { useState, useRef, useEffect } from "react";
+import { useMemo, useCallback, Suspense } from "react";
 import DOMPurify from "dompurify";
 import ResubmitModal from "./ResubmitModal";
-import indianJsonData from '/assets/JSON/IndianPincodesData.json?url'
+import indianJsonData from "/assets/JSON/IndianPincodesData.json?url";
 
 function FormCountryDropdown() {
   const [firstName, setFirstName] = useState("");
@@ -48,6 +42,12 @@ function FormCountryDropdown() {
   const [isSearchingDistrict, setIsSearchingDistrict] = useState(false);
   const [isSearchingTaluk, setIsSearchingTaluk] = useState(false);
   const [isSearchingOffice, setIsSearchingOffice] = useState(false);
+  const [isEnteringPhone, setIsEnteringPhone] = useState(false);
+  const [isEnteringMail, setIsEnteringMail] = useState(false);
+  const [isEnteringAddress, setIsEnteringAddress] = useState(false);
+  const [isEnteringLandmark, setIsEnteringLandmark] = useState(false);
+  const [typingFname, setIsTypingFname] = useState(false);
+  const [typingLname, setIsTypingLname] = useState(false);
 
   const [isIndianPlaces, setIsIndianPlaces] = useState(false);
   const [optimizedIndianData, setOptimizedIndianData] = useState({});
@@ -55,12 +55,18 @@ function FormCountryDropdown() {
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
 
+  const fNameInputRef = useRef(null);
+  const lNameInputRef = useRef(null);
   const countryDropdownRef = useRef(null);
   const stateDropdownRef = useRef(null);
   const cityDropdownRef = useRef(null);
   const districtDropdownRef = useRef(null);
   const talukDropdownRef = useRef(null);
   const branchOfficeDropdownRef = useRef(null);
+  const phoneInputRef = useRef(null);
+  const mailInputRef = useRef(null);
+  const addressInputRef = useRef(null);
+  const landmarkInputRef = useRef(null);
 
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,34 +74,89 @@ function FormCountryDropdown() {
   const [formData, setFormData] = useState([]);
 
   useEffect(() => {
+    const logArr = [
+      { field: "firstName", value: typingFname },
+      { field: "lastName", value: typingLname },
+      { field: "email", value: isEnteringMail },
+      { field: "phoneNumber", value: isEnteringPhone },
+      { field: "country", value: isSearchingCountry },
+      { field: "state", value: isSearchingState },
+      { field: "city", value: isSearchingCity },
+      { field: "addressLine", value: isEnteringAddress },
+      { field: "landmark", value: isEnteringLandmark },
+    ];
+    if (isIndianPlaces && optimizedIndianData.length > 0) {
+      logArr.splice(6, 1);
+      logArr.push(
+        { field: "district", value: isSearchingDistrict },
+        { field: "taluk", value: isSearchingTaluk },
+        { field: "office", value: isSearchingOffice }
+      );
+    }
+
+    // const checkFalse
+    logArr.forEach((value, index) => {
+      if (value.value) {
+        console.log(`${index + 1}. ${value.field}  :`, value.value);
+      }
+    });
+  }, [
+    isSearchingCountry,
+    isSearchingState,
+    isSearchingCity,
+    isSearchingDistrict,
+    isSearchingTaluk,
+    isSearchingOffice,
+    isEnteringPhone,
+    isEnteringMail,
+    isEnteringAddress,
+    isEnteringLandmark,
+    typingFname,
+    typingLname,
+    isIndianPlaces,
+    optimizedIndianData.length,
+  ]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
-      switch (true) {
-        case countryDropdownRef.current &&
-          !countryDropdownRef.current.contains(event.target):
+      if (
+        fNameInputRef.current &&
+        !fNameInputRef.current.contains(event.target) &&
+        lNameInputRef.current &&
+        !lNameInputRef.current.contains(event.target) &&
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(event.target) &&
+        stateDropdownRef.current &&
+        !stateDropdownRef.current.contains(event.target) &&
+        cityDropdownRef.current &&
+        !cityDropdownRef.current.contains(event.target) &&
+        districtDropdownRef.current &&
+        !districtDropdownRef.current.contains(event.target) &&
+        talukDropdownRef.current &&
+        !talukDropdownRef.current.contains(event.target) &&
+        branchOfficeDropdownRef.current &&
+        !branchOfficeDropdownRef.current.contains(event.target) &&
+        phoneInputRef.current &&
+        !phoneInputRef.current.contains(event.target) &&
+        mailInputRef.current &&
+        !mailInputRef.current.contains(event.target) &&
+        addressInputRef.current &&
+        !addressInputRef.current.contains(event.target) &&
+        landmarkInputRef.current &&
+        !landmarkInputRef.current.contains(event.target)
+      ) {
+          setIsTypingFname(false);
+          setIsTypingLname(false);
           setIsSearchingCountry(false);
-          break;
-        case stateDropdownRef.current &&
-          !stateDropdownRef.current.contains(event.target):
           setIsSearchingState(false);
-          break;
-        case districtDropdownRef.current &&
-          !districtDropdownRef.current.contains(event.target):
-          setIsSearchingDistrict(false);
-          break;
-        case talukDropdownRef.current &&
-          !talukDropdownRef.current.contains(event.target):
-          setIsSearchingTaluk(false);
-          break;
-        case branchOfficeDropdownRef.current &&
-          !branchOfficeDropdownRef.current.contains(event.target):
-          setIsSearchingOffice(false);
-          break;
-        case cityDropdownRef.current &&
-          !cityDropdownRef.current.contains(event.target):
           setIsSearchingCity(false);
-          break;
-        default:
-          break;
+          setIsSearchingDistrict(false);
+          setIsSearchingTaluk(false);
+          setIsSearchingOffice(false);
+          setIsEnteringPhone(false);
+          setIsEnteringMail(false);
+          setIsEnteringAddress(false);
+          setIsEnteringLandmark(false);
       }
     };
 
@@ -205,22 +266,6 @@ function FormCountryDropdown() {
         setOptimizedIndianData(optimizedData);
 
         // console.log("Optimized data:", optimizedData);
-
-        //   "Data loaded - Countries:",
-        //   countriesData.length,
-        //   "No.States:",
-        //   statesData.length,
-        //   "No.Cities:",
-        //   citiesData.length,
-        //   "No.Indian Data:",
-        //   indianData.length,
-        //   "No.Optimized data:",
-        //   optimizedData.length,
-        //   "States:",
-        //   statesData,
-        //   "Cities loaded:",
-        //   citiesData
-        // );
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -382,7 +427,6 @@ function FormCountryDropdown() {
         firstNameErrors.push("First Name contains invalid characters");
       }
     }
-
     if (firstNameErrors.length > 0) {
       newErrors.firstName = firstNameErrors;
     }
@@ -405,7 +449,6 @@ function FormCountryDropdown() {
         lastNameErrors.push("Last name contains invalid characters");
       }
     }
-
     if (lastNameErrors.length > 0) {
       newErrors.lastName = lastNameErrors;
     }
@@ -500,21 +543,28 @@ function FormCountryDropdown() {
       if (field === "firstName") {
         newErrors.firstName = [];
         if (!value || value.trim().length === 0) {
-          newErrors.firstName.push("First name is required");
+          newErrors.firstName.push("First Name is required");
+        } else {
+          const sanitizedAddress = DOMPurify.sanitize(value.trim());
+          if (sanitizedAddress !== value.trim()) {
+            newErrors.firstName.push("First Name contains invalid characters");
+          } else {
+            if (!/^[a-zA-Z]+$/.test(sanitizedAddress)) {
+              newErrors.firstName.push(
+                "First Name should contain only alphabets"
+              );
+            } else if (sanitizedAddress.length < 2) {
+              newErrors.firstName.push(
+                "First Name should be at least 2 characters long"
+              );
+            } else if (sanitizedAddress.length > 10) {
+              newErrors.firstName.push(
+                "First Name should not exceed 10 characters"
+              );
+            }
+          }
         }
-        if (value.trim().length < 3) {
-          newErrors.firstName.push(
-            "First name should be at least 3 characters long"
-          );
-        }
-        if (!/^[A-Za-z]+$/.test(value.trim())) {
-          newErrors.firstName.push("First name should contain only alphabets");
-        }
-        if (value.trim().length > 10) {
-          newErrors.firstName.push(
-            "First name should not exceed 10 characters"
-          );
-        }
+
         if (newErrors.firstName.length === 0) {
           delete newErrors.firstName;
         }
@@ -525,21 +575,29 @@ function FormCountryDropdown() {
         newErrors.lastName = [];
         if (!value || value.trim().length === 0) {
           newErrors.lastName.push("Last name is required");
-        }
-        if (value.trim().length < 2) {
-          newErrors.lastName.push(
-            "Last name should be at least 2 characters long"
-          );
-        }
-        if (!/^[A-Za-z]+$/.test(value.trim())) {
-          newErrors.lastName.push("Last name should contain only alphabets");
-        }
-        if (value.trim().length > 10) {
-          newErrors.lastName.push("Last name should not exceed 10 characters");
         } else {
-          if (newErrors.lastName.length === 0) {
-            delete newErrors.lastName;
+          const sanitizedAddress = DOMPurify.sanitize(value.trim());
+          if (sanitizedAddress !== value.trim()) {
+            newErrors.lastName.push("Last name contains invalid characters");
+          } else {
+            if (!/^[a-zA-Z]+$/.test(sanitizedAddress)) {
+              newErrors.lastName.push(
+                "Last name should contain only alphabets"
+              );
+            } else if (sanitizedAddress.length < 2) {
+              newErrors.lastName.push(
+                "Last name should be at least 2 characters long"
+              );
+            } else if (sanitizedAddress.length > 10) {
+              newErrors.lastName.push(
+                "Last name should not exceed 10 characters"
+              );
+            }
           }
+        }
+
+        if (newErrors.lastName.length === 0) {
+          delete newErrors.lastName;
         }
       }
 
@@ -633,17 +691,28 @@ function FormCountryDropdown() {
       // Validate addressLine
       if (field === "addressLine") {
         newErrors.addressLine = [];
-        if (!value || !value.trim()) {
-          newErrors.addressLine = "Address is required";
+        if (!value || value.trim().length === 0) {
+          newErrors.addressLine.push("Address is required");
         } else {
           const sanitizedAddress = DOMPurify.sanitize(value.trim());
           if (sanitizedAddress !== value.trim()) {
-            newErrors.addressLine = "Address contains invalid characters";
+            newErrors.addressLine.push("Address contain Invaild characters");
           } else {
-            if (newErrors.addressLine.length === 0) {
-              delete newErrors.addressLine;
+            if (sanitizedAddress.length < 2) {
+              newErrors.addressLine.push(
+                "Address should be at least 2 characters long"
+              );
+            }
+            if (sanitizedAddress.length > 10) {
+              newErrors.addressLine.push(
+                "Address should not exceed 10 characters"
+              );
             }
           }
+        }
+
+        if (newErrors.addressLine.length === 0) {
+          delete newErrors.addressLine;
         }
       }
 
@@ -664,7 +733,7 @@ function FormCountryDropdown() {
         }
       }
 
-      console.log("Validation errors:", newErrors);
+      // console.log("Validation errors:", newErrors);
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0 ? null : newErrors;
     },
@@ -696,6 +765,7 @@ function FormCountryDropdown() {
   }, []);
   const handleFirstNameChange = useCallback(
     (e) => {
+      setIsTypingFname(true);
       const value = e.target.value;
       setFirstName(value);
       const newErrors = validateForm("firstName", value);
@@ -706,6 +776,7 @@ function FormCountryDropdown() {
 
   const handleLastNameChange = useCallback(
     (e) => {
+      setIsTypingLname(true);
       const value = e.target.value;
       setLastName(value);
       const newErrors = validateForm("lastName", value);
@@ -716,6 +787,7 @@ function FormCountryDropdown() {
 
   const handleMailChange = useCallback(
     (e) => {
+      setIsEnteringMail(true);
       const value = e.target.value;
       setEmail(value);
       const newErrors = validateForm("email", value);
@@ -726,6 +798,7 @@ function FormCountryDropdown() {
 
   const handlePhoneNumberChange = useCallback(
     (e) => {
+      setIsEnteringPhone(true);
       const value = e.target.value;
       setPhoneNumber(value);
       const newErrors = validateForm("phoneNumber", value);
@@ -736,6 +809,7 @@ function FormCountryDropdown() {
 
   const handleAddressLineChange = useCallback(
     (e) => {
+      setIsEnteringAddress(true);
       const value = e.target.value;
       setAddressLine(value);
       const newErrors = validateForm("addressLine", value);
@@ -746,6 +820,7 @@ function FormCountryDropdown() {
 
   const handleLandmarkChange = useCallback(
     (e) => {
+      setIsEnteringLandmark(true);
       const value = e.target.value;
       setLandmark(value);
       const newErrors = validateForm("landmark", value);
@@ -756,6 +831,7 @@ function FormCountryDropdown() {
 
   const handleCountrySelect = useCallback(
     (country) => {
+      
       setSelectedCountry(country);
       setCountrySearch(country.name);
       setSelectedState(null);
@@ -773,6 +849,7 @@ function FormCountryDropdown() {
         const newErrors = validateForm("country", country.name);
         setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
       }
+      
     },
     [validateForm]
   );
@@ -813,6 +890,7 @@ function FormCountryDropdown() {
       const newErrors = validateForm("city", city.city_name);
       setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
     },
+
     [validateForm]
   );
 
@@ -982,20 +1060,23 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="first-name"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   First Name
                 </label>
                 <input
+                  ref={fNameInputRef}
                   id="first-name"
                   name="firstName"
                   value={firstName}
                   onChange={(e) => {
                     handleFirstNameChange(e);
                   }}
+                  onFocus={() => setIsTypingFname(true)}
+                  onBlur={() => setIsTypingFname(false)}
                   type="text"
                   placeholder="Rajkiran"
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.firstName ? "border-red-500 " : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.firstName
@@ -1003,30 +1084,37 @@ function FormCountryDropdown() {
                       : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.firstName && Array.isArray(errors.firstName) && (
-                  <div className="text-red-500 bg-slate-100 p-2 flex flex-col text-xs mt-1 gap-1">
-                    {errors.firstName.map((error, index) => (
-                      <p key={index}>{error}</p>
-                    ))}
-                  </div>
-                )}
+                {typingFname &&
+                  errors.firstName &&
+                  Array.isArray(errors.firstName) && (
+                    <div className="absolute z-10 w-2/3 lg:-left-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                      <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                        {errors.firstName.map((error, index) => (
+                          <p key={index}>{error}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
               </div>
               {/* Last Name */}
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="last-name"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Last Name
                 </label>
                 <input
+                  ref={lNameInputRef}
                   id="last-name"
                   name="lastName"
                   value={lastName}
                   onChange={(e) => handleLastNameChange(e)}
+                  onFocus={() => setIsTypingLname(true)}
+                  onBlur={() => setIsTypingLname(false)}
                   type="text"
                   placeholder="Dev"
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.lastName ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.lastName
@@ -1034,13 +1122,17 @@ function FormCountryDropdown() {
                       : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.lastName && Array.isArray(errors.lastName) && (
-                  <div className="text-red-500 flex flex-col text-xs mt-1 gap-1">
-                    {errors.lastName.map((error, index) => (
-                      <p key={index}>{error}</p>
-                    ))}
-                  </div>
-                )}
+                {typingLname &&
+                  errors.lastName &&
+                  Array.isArray(errors.lastName) && (
+                    <div className="absolute z-10 w-2/3 lg:-right-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                      <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                        {errors.lastName.map((error, index) => (
+                          <p key={index}>{error}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
               </div>
             </div>
 
@@ -1049,43 +1141,57 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="email"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Email
                 </label>
                 <input
+                  ref={mailInputRef}
                   id="email"
                   name="email"
                   value={email}
                   onChange={(e) => handleMailChange(e)}
+                  onFocus={() => setIsEnteringMail(true)}
+                  onBlur={() => setIsEnteringMail(false)}
                   type="email"
                   placeholder="rajkiran.dev@example.com"
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.email ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.email ? "focus:ring-red-500" : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
+                {isEnteringMail &&
+                  errors.email &&
+                  Array.isArray(errors.email) && (
+                    <div className="absolute z-10 w-2/3 lg:-left-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                      <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                        {errors.email.map((error, index) => (
+                          <p key={index}>{error}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
               </div>
               {/* Phone Number */}
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="phone-number"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Phone No
                 </label>
                 <input
+                  ref={phoneInputRef}
                   id="phone-number"
                   name="phoneNumber"
                   value={phoneNumber}
                   onChange={(e) => handlePhoneNumberChange(e)}
+                  onFocus={() => setIsEnteringPhone(true)}
+                  onBlur={() => setIsEnteringPhone(false)}
                   type="tel"
                   placeholder="123-456-7890"
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.phoneNumber ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.phoneNumber
@@ -1093,29 +1199,40 @@ function FormCountryDropdown() {
                       : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.phoneNumber && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.phoneNumber}
-                  </p>
+
+                {isEnteringPhone && errors.phoneNumber && (
+                  <div
+                    className="absolute z-10 w-2/3 lg:-right-[68%] font-light 
+                    right-0 backdrop:blur-md -top-0 lg:top-10 bg-red-100 border  
+                    rounded-md shadow-lg p-2 mt-1 transition-all ease-in-out duration-200"
+                  >
+                    <div className="text-red-500 text-[7pt] sm:text-xs h-auto">
+                      {errors.phoneNumber}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
             <div className="flex gap-5">
               {/* Country Input */}
-              <div
-                className="flex-1 flex flex-col relative"
-                ref={countryDropdownRef}
-              >
+              <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="country-search"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Country
                 </label>
                 <input
+                  ref={countryDropdownRef}
                   id="country-search"
                   name="countrySearch"
                   value={countrySearch}
+                  onFocus={() => setIsSearchingCountry(true)}
+                  onBlur={() => {
+                    if (selectedCountry) {
+                      setIsSearchingCountry(false);
+                    }
+                  }}
                   onChange={(e) => {
                     setCountrySearch(e.target.value);
                     setIsSearchingCountry(true);
@@ -1125,10 +1242,9 @@ function FormCountryDropdown() {
                       setCities([]);
                     }
                   }}
-                  onFocus={() => setIsSearchingCountry(true)}
                   type="text"
                   placeholder="choose country"
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.country ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.country
@@ -1136,9 +1252,17 @@ function FormCountryDropdown() {
                       : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.country && (
-                  <p className="text-red-500 text-xs mt-1">{errors.country}</p>
-                )}
+                {isSearchingCountry &&
+                  errors.country &&
+                  Array.isArray(errors.country) && (
+                    <div className="absolute z-10 w-2/3 lg:-left-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                      <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                        {errors.country.map((error, index) => (
+                          <p key={index}>{error}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 {isSearchingCountry && (
                   <Suspense fallback={<Loading />}>
                     {isLoadingCountries ? (
@@ -1164,21 +1288,25 @@ function FormCountryDropdown() {
               </div>
 
               {/* State Input */}
-              <div
-                className="flex-1 flex flex-col relative"
-                ref={stateDropdownRef}
-              >
+              <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="state-search"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   State
                 </label>
                 <input
+                  ref={stateDropdownRef}
                   id="state-search"
                   type="text"
                   name="states"
                   value={stateSearch}
+                  onFocus={() => setIsSearchingState(true)}
+                  onBlur={() => {
+                    if (selectedState) {
+                      setIsSearchingState(false);
+                    }
+                  }}
                   onChange={(e) => {
                     setStateSearch(e.target.value);
                     setIsSearchingState(true);
@@ -1191,18 +1319,26 @@ function FormCountryDropdown() {
                       setPincodeSearch("");
                     }
                   }}
-                  onFocus={() => setIsSearchingState(true)}
                   placeholder="Choose state"
                   disabled={!selectedCountry}
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.state ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.state ? "focus:ring-red-500" : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.state && (
-                  <p className="text-red-500 text-xs mt-1">{errors.state}</p>
-                )}
+                {isSearchingState &&
+                  errors.state &&
+                  Array.isArray(errors.state) && (
+                    <div className="absolute z-10 w-2/3 lg:-right-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                      <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                        {errors.state.map((error, index) => (
+                          <p key={index}>{error}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                 {selectedCountry && isSearchingState && (
                   <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {filteredStates.map((state) => (
@@ -1227,21 +1363,25 @@ function FormCountryDropdown() {
               <>
                 <div className="flex gap-5">
                   {/* District Input */}
-                  <div
-                    className="flex-1 flex flex-col relative"
-                    ref={districtDropdownRef}
-                  >
+                  <div className="flex-1 flex flex-col relative">
                     <label
                       htmlFor="district-search"
-                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                      className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                     >
                       District
                     </label>
                     <input
+                      ref={districtDropdownRef}
                       id="district-search"
                       type="text"
                       name="district"
                       value={districtSearch}
+                      onFocus={() => setIsSearchingDistrict(true)}
+                      onBlur={() => {
+                        if (selectedDistrict) {
+                          setIsSearchingDistrict(false);
+                        }
+                      }}
                       onChange={(e) => {
                         setDistrictSearch(e.target.value);
                         setIsSearchingDistrict(true);
@@ -1252,10 +1392,9 @@ function FormCountryDropdown() {
                           setPincodeSearch("");
                         }
                       }}
-                      onFocus={() => setIsSearchingDistrict(true)}
                       placeholder="Choose district"
                       disabled={!selectedState}
-                      className={`w-full px-3 py-2 border ${
+                      className={`relative w-full px-3 py-2 border ${
                         errors.district ? "border-red-500" : "border-gray-300"
                       } rounded-md focus:outline-none focus:ring-2 ${
                         errors.district
@@ -1263,11 +1402,17 @@ function FormCountryDropdown() {
                           : "focus:ring-blue-500"
                       } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                     />
-                    {errors.district && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.district}
-                      </p>
-                    )}
+                    {isSearchingDistrict &&
+                      errors.district &&
+                      Array.isArray(errors.district) && (
+                        <div className="absolute z-10 w-2/3 lg:-left-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                          <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                            {errors.district.map((error, index) => (
+                              <p key={index}>{error}</p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     {selectedState && isSearchingDistrict && (
                       <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                         {filteredDistricts.map((district) => (
@@ -1287,21 +1432,27 @@ function FormCountryDropdown() {
                   </div>
 
                   {/* Taluk Input */}
-                  <div
-                    className="flex-1 flex flex-col relative"
-                    ref={talukDropdownRef}
-                  >
+                  <div className="flex-1 flex flex-col relative">
                     <label
                       htmlFor="taluk-search"
-                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                      className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                     >
                       Taluk
                     </label>
                     <input
+                      ref={talukDropdownRef}
                       id="taluk-search"
                       type="text"
                       name="taluk"
                       value={talukSearch}
+                      onFocus={() => setIsSearchingTaluk(true)}
+                      onBlur={() => 
+                      {
+                        if (selectedTaluk) {
+                          setIsSearchingTaluk(false);
+                        }
+                      }
+                      }
                       onChange={(e) => {
                         setTalukSearch(e.target.value);
                         setIsSearchingTaluk(true);
@@ -1311,10 +1462,9 @@ function FormCountryDropdown() {
                           setPincodeSearch("");
                         }
                       }}
-                      onFocus={() => setIsSearchingTaluk(true)}
                       placeholder="Choose taluk"
                       disabled={!districtSearch}
-                      className={`w-full px-3 py-2 border ${
+                      className={`relative w-full px-3 py-2 border ${
                         errors.taluk ? "border-red-500" : "border-gray-300"
                       } rounded-md focus:outline-none focus:ring-2 ${
                         errors.taluk
@@ -1322,7 +1472,7 @@ function FormCountryDropdown() {
                           : "focus:ring-blue-500"
                       } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                     />
-                    {errors.taluk && (
+                    {isSearchingTaluk && errors.taluk && (
                       <p className="text-red-500 text-xs mt-1">
                         {errors.taluk}
                       </p>
@@ -1348,22 +1498,26 @@ function FormCountryDropdown() {
 
                 <div className="flex gap-5">
                   {/* Branch Office Input */}
-                  <div
-                    className="flex-1 flex flex-col relative"
-                    ref={branchOfficeDropdownRef}
-                  >
+                  <div className="flex-1 flex flex-col relative">
                     <label
                       htmlFor="branch-office-search"
-                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                      className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                     >
                       Branch Office
                     </label>
                     <div className="flex-1 relative">
                       <input
+                        ref={branchOfficeDropdownRef}
                         id="branch-office-search"
                         type="text"
                         name="branchOffice"
                         value={branchOfficeSearch}
+                        onFocus={() => setIsSearchingOffice(true)}
+                        onBlur={() => {
+                          if ( selectedBranchOffice) {
+                            setIsSearchingOffice(false);
+                          }
+                        }}
                         onChange={(e) => {
                           setBranchOfficeSearch(e.target.value);
                           setIsSearchingOffice(true);
@@ -1372,10 +1526,9 @@ function FormCountryDropdown() {
                             setPincodeSearch("");
                           }
                         }}
-                        onFocus={() => setIsSearchingOffice(true)}
                         placeholder="Choose branch office"
                         disabled={!talukSearch}
-                        className={`w-full px-3 py-2 border ${
+                        className={`relative w-full px-3 py-2 border ${
                           errors.branchOffice
                             ? "border-red-500"
                             : "border-gray-300"
@@ -1385,11 +1538,17 @@ function FormCountryDropdown() {
                             : "focus:ring-blue-500"
                         } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                       />
-                      {errors.branchOffice && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.branchOffice}
-                        </p>
-                      )}
+                      {isSearchingOffice &&
+                        errors.branchOffice &&
+                        Array.isArray(errors.branchOffice) && (
+                          <div className="absolute z-10 w-2/3 lg:-left-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                            <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                              {errors.branchOffice.map((error, index) => (
+                                <p key={index}>{error}</p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       {talukSearch && isSearchingOffice && (
                         <ul className="absolute z-10 w-full top-full left-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                           {filteredBranchOffices.map((office) => (
@@ -1413,7 +1572,7 @@ function FormCountryDropdown() {
                   <div className="flex-1 flex flex-col relative">
                     <label
                       htmlFor="pincode"
-                      className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                      className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                     >
                       Pincode
                     </label>
@@ -1431,7 +1590,7 @@ function FormCountryDropdown() {
                         }}
                         placeholder="Pincode"
                         readOnly
-                        className={`w-full px-3 py-2 border ${
+                        className={`relative w-full px-3 py-2 border ${
                           errors.pincode ? "border-red-500" : "border-gray-300"
                         } rounded-md focus:outline-none focus:ring-2 ${
                           errors.pincode
@@ -1450,7 +1609,7 @@ function FormCountryDropdown() {
               </>
             ) : (
               // City Input for non-Indian places
-              <div className="relative" ref={cityDropdownRef}>
+              <div className="relative">
                 <label
                   htmlFor="city-search"
                   className="block text-sm font-medium text-stone-50 mb-1"
@@ -1458,26 +1617,40 @@ function FormCountryDropdown() {
                   City
                 </label>
                 <input
+                  ref={cityDropdownRef}
                   id="city-search"
                   type="text"
                   name="city"
                   value={citySearch}
+                  onFocus={() => setIsSearchingCity(true)}
+                  onBlur={() => {
+                    if (selectedCity) {
+                      setIsSearchingCity(false);
+                    }
+                  }}
                   onChange={(e) => {
                     setCitySearch(e.target.value);
                     setIsSearchingCity(true);
                   }}
-                  onFocus={() => setIsSearchingCity(true)}
                   placeholder="Choose city"
                   disabled={!selectedState}
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.city ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.city ? "focus:ring-red-500" : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.city && (
-                  <p className="text-red-500 text-xs mt-1">{errors.city}</p>
-                )}
+                {isSearchingCity &&
+                  errors.city &&
+                  Array.isArray(errors.city) && (
+                    <div className="absolute z-10 w-2/3 lg:-left-[68%] font-light right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  rounded-md shadow-lg p-2 mt-1">
+                      <div className="text-red-500 text-[7pt] sm:text-xs overflow-y-scroll max-sm:h-[66px]">
+                        {errors.city.map((error, index) => (
+                          <p key={index}>{error}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 {selectedState && isSearchingCity && !isLoadingCities && (
                   <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {filteredCities.length > 0 ? (
@@ -1507,18 +1680,21 @@ function FormCountryDropdown() {
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="flat-floor-hno"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Address
                 </label>
                 <input
+                  ref={addressInputRef}
                   id="flat-floor-hno"
                   type="text"
                   name="flatFloorHno"
                   value={addressLine}
                   onChange={(e) => handleAddressLineChange(e)}
+                  onFocus={() => setIsEnteringAddress(true)}
+                  onBlur={() => setIsEnteringAddress(false)}
                   placeholder="Flat/Floor/H.No"
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.addressLine ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.addressLine
@@ -1526,28 +1702,41 @@ function FormCountryDropdown() {
                       : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.addressLine && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors.addressLine}
-                  </p>
-                )}
+                {isEnteringAddress &&
+                  errors.addressLine &&
+                  Array.isArray(errors.addressLine) && (
+                    <div className="absolute z-10 w-2/3 lg:-left-[68%] font-light right-0 backdrop:blur-md top-full lg:top-10 bg-red-100 border rounded-md shadow-lg p-2 mt-1">
+                      <div className="text-red-500 text-xs sm:text-sm overflow-y-auto max-h-24">
+                        {console.log(
+                          "Array of Address Errors: ",
+                          errors.addressLine
+                        )}
+                        {errors.addressLine.map((error, index) => (
+                          <p key={index}>{error}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
               </div>
               {/* Landmark */}
               <div className="flex-1 flex flex-col relative">
                 <label
                   htmlFor="landmark"
-                  className="text-base font-bold text-stone-50 mb-1 h-10 flex items-start"
+                  className="text-base font-medium text-stone-50 mb-1 h-10 flex items-start"
                 >
                   Landmark
                 </label>
                 <input
+                  ref={landmarkInputRef}
                   id="landmark"
                   type="text"
                   name="landmark"
                   value={landmark}
                   onChange={(e) => handleLandmarkChange(e)}
+                  onFocus={() => setIsEnteringLandmark(true)}
+                  onBlur={() => setIsEnteringLandmark(false)}
                   placeholder="Landmark"
-                  className={`w-full px-3 py-2 border ${
+                  className={`relative w-full px-3 py-2 border ${
                     errors.landmark ? "border-red-500" : "border-gray-300"
                   } rounded-md focus:outline-none focus:ring-2 ${
                     errors.landmark
@@ -1555,8 +1744,16 @@ function FormCountryDropdown() {
                       : "focus:ring-blue-500"
                   } disabled:bg-gray-100 disabled:cursor-not-allowed`}
                 />
-                {errors.landmark && (
-                  <p className="text-red-500 text-xs mt-1">{errors.landmark}</p>
+                {isEnteringLandmark && errors.landmark && (
+                  <div
+                    className="absolute z-10 w-2/3 lg:-right-[68%] font-light 
+                    right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  
+                    rounded-md shadow-lg p-2 mt-1"
+                  >
+                    <div className="text-red-500 text-[7pt] sm:text-xs h-auto max-sm:h-[66px]">
+                      {errors.landmark}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

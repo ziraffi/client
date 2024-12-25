@@ -1,20 +1,24 @@
-import { useEffect, useState } from 'react';
-// import Logo from "./Logo";
+import { useEffect, useState, useRef } from 'react';
 import StoreBar from "./StoreBar";
 
 function Header() {
   const [scrollProgress, setScrollProgress] = useState(0);
-
+  const headerRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   useEffect(() => {
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight);
+    }
+
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      if (scrollPosition <= 48) {
-        setScrollProgress(0);
-      } else if (scrollPosition >= 50) {
-        setScrollProgress(1);
+      const threshold = headerHeight * 1.5;
+
+      if (scrollPosition <= threshold) {
+        setScrollProgress(scrollPosition / threshold);
       } else {
-        setScrollProgress((scrollPosition - 48) / 5); // Normalize between 0 and 1
+        setScrollProgress(1);
       }
     };
 
@@ -23,23 +27,11 @@ function Header() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [headerHeight]);
 
   return (
-    <header className="z-50">
-      {/* <div 
-        className={`bg-white shadow-md transition-all duration-300`}
-        style={{
-          height: `${(1 - scrollProgress) * 100}%`,
-          opacity: 1 - scrollProgress,
-          overflow: 'hidden'
-        }}
-      >
-        <div className="fluid mx-auto">
-          <Logo />
-        </div>
-      </div> */}
-      <StoreBar scrollProgress={scrollProgress} />
+    <header ref={headerRef} className="z-50 flex flex-row items-center justify-between">
+      <StoreBar scrollProgress={scrollProgress} headerHeight={headerHeight} />
     </header>
   );
 }

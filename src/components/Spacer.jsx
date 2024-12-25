@@ -1,6 +1,6 @@
 import { PropTypes } from 'prop-types';
 
-function Spacer({ height }) {
+function Spacer({ height = 20 }) {
   return (
     <div style={{ height: `${height}px` }}>
       {/* Spacer content */}
@@ -8,12 +8,9 @@ function Spacer({ height }) {
   );
 }
 
-Spacer.defaultProps = {
-  height: 20,
-};
-
 Spacer.propTypes = {
-  height: PropTypes.number.isRequired,
+  height: PropTypes.number,
 };
 
 export default Spacer;
+

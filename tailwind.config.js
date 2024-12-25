@@ -18,6 +18,9 @@ export default {
     boxShadow: {
       '3xl': '0px 2px 3px 2px rgba(0, 0, 0, 0.3);',
     },
+    fontFamily: {
+      poppins: ["Poppins", "sans-serif"],
+    },
     },
   },
   plugins: [],

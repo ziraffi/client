@@ -1,8 +1,13 @@
-import { PropTypes } from 'prop-types';
+import PropTypes from "prop-types";
+import LoginBtn from "./LoginBtn";
+import GetInTouch from "./GetInTouch";
 
-function Navbar({ barHeight, isDrawerOpen, toggleDrawer }) {
+function Navbar({ barHeight, isDrawerOpen, toggleDrawer, scrollProgress }) {
+  const drawerTopPosition = scrollProgress === 1 ? barHeight : 72;
+  // console.log(drawerTopPosition);
+  
   return (
-    <div className="w-1/3 md:w-3/6 order-[1] md:order-[2] md:px-10">
+    <div className="w-1/3 md:w-3/6 order-[1] md:order-[2] md:px-10 flex md:justify-center">
       <button
         onClick={toggleDrawer}
         type="button"
@@ -37,21 +42,20 @@ function Navbar({ barHeight, isDrawerOpen, toggleDrawer }) {
         ></div>
       )}
 
-      {/* Drawer */}
       <div
         id="drawer-navigation"
         className={`fixed left-0 z-50 w-64 bg-white dark:bg-gray-800 md:hidden transition-transform duration-300 ease-in-out ${
           isDrawerOpen ? "translate-x-0" : "-translate-x-full"
         }`}
-        style={{ 
-          top: `${barHeight}px`,
-          height: `calc(100vh - ${barHeight}px)`,
-          overflowY: 'auto'
+        style={{
+          top: `${drawerTopPosition}px`,
+          height: `calc(100vh - ${drawerTopPosition}px)`,
+          overflowY: "auto",
         }}
         tabIndex="-1"
         aria-labelledby="drawer-navigation-label"
       >
-        <div className="p-4">
+        <div className="p-4 flex flex-col h-full">
           <h5
             id="drawer-navigation-label"
             className="text-base font-semibold text-gray-500 uppercase dark:text-gray-400"
@@ -78,7 +82,7 @@ function Navbar({ barHeight, isDrawerOpen, toggleDrawer }) {
             </svg>
             <span className="sr-only">Close menu</span>
           </button>
-          <nav className="py-4">
+          <nav className="py-4 flex-grow">
             <ul className="space-y-2">
               <li>
                 <a
@@ -106,6 +110,10 @@ function Navbar({ barHeight, isDrawerOpen, toggleDrawer }) {
               </li>
             </ul>
           </nav>
+          <div className="mt-auto flex flex-col items-center gap-4">
+            <LoginBtn />
+            <GetInTouch />
+          </div>
         </div>
       </div>
 
@@ -148,6 +156,7 @@ Navbar.propTypes = {
   barHeight: PropTypes.number.isRequired,
   isDrawerOpen: PropTypes.bool.isRequired,
   toggleDrawer: PropTypes.func.isRequired,
+  scrollProgress: PropTypes.number.isRequired,
 };
 
 export default Navbar;
