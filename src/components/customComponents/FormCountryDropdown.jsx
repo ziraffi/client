@@ -31,7 +31,7 @@ function FormCountryDropdown() {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
-  const [indianData, setIndianData] = useState([]);
+  // const [indianData, setIndianData] = useState([]);
   const [citySearch, setCitySearch] = useState("");
   const [allStates, setAllStates] = useState([]);
   const [allCities, setAllCities] = useState([]);
@@ -145,18 +145,18 @@ function FormCountryDropdown() {
         landmarkInputRef.current &&
         !landmarkInputRef.current.contains(event.target)
       ) {
-          setIsTypingFname(false);
-          setIsTypingLname(false);
-          setIsSearchingCountry(false);
-          setIsSearchingState(false);
-          setIsSearchingCity(false);
-          setIsSearchingDistrict(false);
-          setIsSearchingTaluk(false);
-          setIsSearchingOffice(false);
-          setIsEnteringPhone(false);
-          setIsEnteringMail(false);
-          setIsEnteringAddress(false);
-          setIsEnteringLandmark(false);
+        setIsTypingFname(false);
+        setIsTypingLname(false);
+        setIsSearchingCountry(false);
+        setIsSearchingState(false);
+        setIsSearchingCity(false);
+        setIsSearchingDistrict(false);
+        setIsSearchingTaluk(false);
+        setIsSearchingOffice(false);
+        setIsEnteringPhone(false);
+        setIsEnteringMail(false);
+        setIsEnteringAddress(false);
+        setIsEnteringLandmark(false);
       }
     };
 
@@ -261,7 +261,7 @@ function FormCountryDropdown() {
           return acc;
         }, {});
 
-        setIndianData(indianData);
+        // setIndianData(indianData);
 
         setOptimizedIndianData(optimizedData);
 
@@ -302,7 +302,6 @@ function FormCountryDropdown() {
   // In the useEffect for cities
   useEffect(() => {
     if (selectedCountry && selectedState) {
-      setIsLoadingCities(true);
       if (isIndianPlaces) {
         setIsLoadingCities(false);
       } else {
@@ -337,13 +336,18 @@ function FormCountryDropdown() {
   }, [states, stateSearch]);
 
   const filteredCities = useMemo(() => {
+    console.log("Cities:", cities);
+
+    if (!selectedState) {
+      return [];
+    }
     if (!cities || cities.length === 0) {
       return [];
     }
     return cities.filter((city) =>
       city.city_name.toLowerCase().startsWith(citySearch.toLowerCase())
     );
-  }, [cities, citySearch]);
+  }, [cities, citySearch, selectedState]);
 
   const filteredDistricts = useMemo(() => {
     if (!selectedState) {
@@ -831,7 +835,6 @@ function FormCountryDropdown() {
 
   const handleCountrySelect = useCallback(
     (country) => {
-      
       setSelectedCountry(country);
       setCountrySearch(country.name);
       setSelectedState(null);
@@ -849,7 +852,6 @@ function FormCountryDropdown() {
         const newErrors = validateForm("country", country.name);
         setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
       }
-      
     },
     [validateForm]
   );
@@ -884,13 +886,14 @@ function FormCountryDropdown() {
 
   const handleCitySelect = useCallback(
     (city) => {
+      console.log("City selected:", city);
+
       setSelectedCity(city.city_name);
       setCitySearch(city.city_name);
       setIsSearchingCity(false);
       const newErrors = validateForm("city", city.city_name);
       setErrors((prevErrors) => ({ ...prevErrors, ...newErrors }));
     },
-
     [validateForm]
   );
 
@@ -1237,9 +1240,12 @@ function FormCountryDropdown() {
                     setCountrySearch(e.target.value);
                     setIsSearchingCountry(true);
                     if (!e.target.value) {
-                      setSelectedCountry(null);
+                      setSelectedCity("");
+                      setSelectedState("");
+                      setSelectedDistrict("");
                       setStates([]);
                       setCities([]);
+                    
                     }
                   }}
                   type="text"
@@ -1311,8 +1317,9 @@ function FormCountryDropdown() {
                     setStateSearch(e.target.value);
                     setIsSearchingState(true);
                     if (!e.target.value) {
-                      setSelectedState(null);
+                      setSelectedState("");
                       setCities([]);
+                      setSelectedCity("");
                       setDistrictSearch("");
                       setTalukSearch("");
                       setBranchOfficeSearch("");
@@ -1446,13 +1453,11 @@ function FormCountryDropdown() {
                       name="taluk"
                       value={talukSearch}
                       onFocus={() => setIsSearchingTaluk(true)}
-                      onBlur={() => 
-                      {
+                      onBlur={() => {
                         if (selectedTaluk) {
                           setIsSearchingTaluk(false);
                         }
-                      }
-                      }
+                      }}
                       onChange={(e) => {
                         setTalukSearch(e.target.value);
                         setIsSearchingTaluk(true);
@@ -1514,7 +1519,7 @@ function FormCountryDropdown() {
                         value={branchOfficeSearch}
                         onFocus={() => setIsSearchingOffice(true)}
                         onBlur={() => {
-                          if ( selectedBranchOffice) {
+                          if (selectedBranchOffice) {
                             setIsSearchingOffice(false);
                           }
                         }}
@@ -1659,7 +1664,6 @@ function FormCountryDropdown() {
                           key={city.city_id}
                           onClick={() => {
                             handleCitySelect(city);
-                            setIsSearchingCity(false);
                           }}
                           className="px-3 py-2 cursor-pointer hover:bg-gray-100"
                         >
@@ -1747,8 +1751,8 @@ function FormCountryDropdown() {
                 {isEnteringLandmark && errors.landmark && (
                   <div
                     className="absolute z-10 w-2/3 lg:-right-[68%] font-light 
-                    right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  
-                    rounded-md shadow-lg p-2 mt-1"
+                        right-0 backdrop:blur-md -top-[70%] lg:top-10 bg-red-100 border  
+                        rounded-md shadow-lg p-2 mt-1"
                   >
                     <div className="text-red-500 text-[7pt] sm:text-xs h-auto max-sm:h-[66px]">
                       {errors.landmark}
@@ -1757,13 +1761,24 @@ function FormCountryDropdown() {
                 )}
               </div>
             </div>
-            <button
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Submit"}
-            </button>
+
+            <div className="flex gap-5">
+              <button
+                className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
+              <button
+                className="w-1/3 bg-red-200 text-black-500 py-2 px-2 text-sm rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+                type="button"
+                onClick={resetForm}
+              >
+                Reset
+              </button>
+            </div>
+
             {submissionStatus && (
               <div
                 className={`mt-4 p-2 rounded-md ${
